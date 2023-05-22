@@ -37,6 +37,8 @@ public class OfficeController extends BaseController {
         }
         if (officeService.save(office)) {
             userService.generateAdmin(office.getOfficeId());
+            String logMsg = "添加机构，机构ID："+office.getOfficeId();
+            logOperate("机构管理","ADD",logMsg);
             return ResultUtil.success();
         } else {
             return ResultUtil.error();
@@ -52,6 +54,8 @@ public class OfficeController extends BaseController {
     public Result update(@RequestBody Office office) {
         //调用Service更新
         if (officeService.updateById(office)) {
+            String logMsg = "修改机构，机构ID："+office.getOfficeId();
+            logOperate("机构管理","UPDATE",logMsg);
             return ResultUtil.success("修改成功");
         }
         return ResultUtil.error("修改失败");
@@ -69,6 +73,8 @@ public class OfficeController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delById(@PathVariable("id") String officeId){
         if(officeService.removeById(officeId)){
+            String logMsg = "删除机构，机构ID："+officeId;
+            logOperate("机构管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");

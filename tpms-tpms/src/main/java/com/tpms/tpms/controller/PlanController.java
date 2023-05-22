@@ -40,7 +40,7 @@ public class PlanController extends BaseController {
     @PostMapping(value = "/")
     public Result addProgram(@RequestBody Plan plan) throws Exception {
         //检查是否已有培养计划
-        if (planService.checkYearDuplicate(plan)){
+        if (planService.checkYearDuplicate(plan)) {
             return ResultUtil.error("当前专业在当前年份已有培养计划");
         }
 
@@ -49,17 +49,20 @@ public class PlanController extends BaseController {
             if (planService.save(plan)) {
                 String courseIds = plan.getCourseIds();
                 //课程不为空，培养方案添加课程
-                if(StringUtils.isNotBlank(courseIds)){
+                String logMsg = "添加培养计划，培养计划ID：" + plan.getPlanId();
+                if (StringUtils.isNotBlank(courseIds)) {
+                    logMsg += "，课程ID：" + courseIds;
                     String planId = plan.getPlanId();
 
                     List<PlanCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")){
+                    for (String courseId : courseIds.split(",")) {
                         PlanCourse tmp = PlanCourse.builder()
                                 .planId(planId).courseId(courseId).build();
                         list.add(tmp);
                     }
                     planCourseService.saveBatch(list);
                 }
+                logOperate("培养计划管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -73,12 +76,12 @@ public class PlanController extends BaseController {
      */
     @PutMapping(value = "/")
     public Result updatePlan(@RequestBody Plan plan) {
-        if (planService.checkDuplicate(plan,plan.getPlanId())) {
+        if (planService.checkDuplicate(plan, plan.getPlanId())) {
             if (planService.updateById(plan)) {
                 String courseIds = plan.getCourseIds();
 
                 //courseIds如果为pass，跳过修改培养方案课程
-                if("pass".equals(courseIds)){
+                if ("pass".equals(courseIds)) {
                     return ResultUtil.success("修改成功");
                 }
 
@@ -88,17 +91,20 @@ public class PlanController extends BaseController {
 
                 //删除原有课程
                 planCourseService.remove(wrapper);
+                String logMsg = "修改培养计划，培养计划ID：" +planId;
 
                 //courseIds不为空，进行添加课程
-                if(StringUtils.isNotBlank(courseIds)){
+                if (StringUtils.isNotBlank(courseIds)) {
+                    logMsg += "，课程ID：" + courseIds;
                     List<PlanCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")){
+                    for (String courseId : courseIds.split(",")) {
                         PlanCourse tmp = PlanCourse.builder()
                                 .planId(planId).courseId(courseId).build();
                         list.add(tmp);
                     }
                     planCourseService.saveBatch(list);
                 }
+                logOperate("培养计划管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -114,8 +120,8 @@ public class PlanController extends BaseController {
 
         QueryWrapper<Plan> wrapper = new QueryWrapper<>();
 
-        if(StringUtils.isNotBlank(planQuery.getTheYear())){
-            wrapper.eq("tp.the_year",planQuery.getTheYear());
+        if (StringUtils.isNotBlank(planQuery.getTheYear())) {
+            wrapper.eq("tp.the_year", planQuery.getTheYear());
         }
         if (StringUtils.isNotBlank(planQuery.getMajorId())) {
             wrapper.eq("tp.major_id", planQuery.getMajorId());
@@ -150,11 +156,13 @@ public class PlanController extends BaseController {
      * 根据id删除
      */
     @DeleteMapping("/{id}")
-    public Result delById(@PathVariable("id") String planId){
-        if(planService.removeById(planId)){
+    public Result delById(@PathVariable("id") String planId) {
+        if (planService.removeById(planId)) {
             QueryWrapper<PlanCourse> wrapper = new QueryWrapper<>();
             wrapper.eq("plan_id", planId);
             planCourseService.remove(wrapper);
+            String logMsg = "删除培养计划，培养计划ID：" + planId;
+            logOperate("培养计划管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");

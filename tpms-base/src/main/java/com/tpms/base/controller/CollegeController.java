@@ -37,8 +37,9 @@ public class CollegeController extends BaseController {
         if (collegeService.checkDuplicate(college)) {
             college.setDelFlag("0");
             college.setIsStop("0");
-            boolean res = collegeService.save(college);
-            if (res) {
+            if (collegeService.save(college)) {
+                String logMsg = "添加学院，学院ID：" + college.getCollegeId();
+                logOperate("学院管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -57,6 +58,8 @@ public class CollegeController extends BaseController {
 
         if (collegeService.checkDuplicate(college, college.getCollegeId())) {
             if (collegeService.updateById(college)) {
+                String logMsg = "修改学院，学院ID：" + college.getCollegeId();
+                logOperate("学院管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -78,7 +81,10 @@ public class CollegeController extends BaseController {
                     .collegeId(collegeId).isStop(isStop).build();
 
             if (collegeService.updateById(update)) {
-                return ResultUtil.success("1".equals(isStop)?"停用成功":"启用成功");
+                String action = "1".equals(isStop) ? "停用" : "启用";
+                String logMsg = action + "学院，学院ID：" + collegeId;
+                logOperate("学院管理", "UPDATE", logMsg);
+                return ResultUtil.success(action + "成功");
             }
         }
         return ResultUtil.error("操作失败");
@@ -88,8 +94,10 @@ public class CollegeController extends BaseController {
      * 根据id删除
      */
     @DeleteMapping("/{id}")
-    public Result delById(@PathVariable("id") String collegeId){
-        if(collegeService.removeById(collegeId)){
+    public Result delById(@PathVariable("id") String collegeId) {
+        if (collegeService.removeById(collegeId)) {
+            String logMsg = "删除学院，学院ID：" + collegeId;
+            logOperate("学院管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
@@ -106,6 +114,7 @@ public class CollegeController extends BaseController {
 
     /**
      * 分页查询
+     *
      * @param collegeQuery
      * @return
      */
@@ -133,6 +142,7 @@ public class CollegeController extends BaseController {
 
     /**
      * 条件查询
+     *
      * @param collegeQuery
      * @return
      */
@@ -148,6 +158,6 @@ public class CollegeController extends BaseController {
         wrapper.eq(College::getIsStop, "0")
                 .orderByAsc(College::getCollegeCode);
         List<College> list = collegeService.list(wrapper);
-        return ResultUtil.success().buildData("rows",list);
+        return ResultUtil.success().buildData("rows", list);
     }
 }

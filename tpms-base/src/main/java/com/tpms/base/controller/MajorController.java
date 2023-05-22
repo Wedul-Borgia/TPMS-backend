@@ -30,16 +30,17 @@ public class MajorController extends BaseController {
     @PostMapping("/")
     public Result add(@RequestBody Major major) {
 
-        if(majorService.checkDuplicate(major)){
+        if (majorService.checkDuplicate(major)) {
             major.setDelFlag("0");
             major.setIsStop("0");
-            boolean res = majorService.save(major);
-            if (res) {
+            if (majorService.save(major)) {
+                String logMsg = "添加专业，专业ID：" + major.getMajorId();
+                logOperate("专业管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
             }
-        }else{
+        } else {
             return ResultUtil.error("专业名称或编码已存在");
         }
 
@@ -51,8 +52,10 @@ public class MajorController extends BaseController {
     @PutMapping(value = "/")
     public Result update(@RequestBody Major major) {
 
-        if (majorService.checkDuplicate(major,major.getMajorId())) {
+        if (majorService.checkDuplicate(major, major.getMajorId())) {
             if (majorService.updateById(major)) {
+                String logMsg = "修改专业，专业ID：" + major.getMajorId();
+                logOperate("专业管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -74,7 +77,10 @@ public class MajorController extends BaseController {
                     .majorId(majorId).isStop(isStop).build();
 
             if (majorService.updateById(update)) {
-                return ResultUtil.success("1".equals(isStop)?"停用成功":"启用成功");
+                String action = "1".equals(isStop) ? "停用" : "启用";
+                String logMsg = action + "专业，专业ID：" + majorId;
+                logOperate("专业管理", "UPDATE", logMsg);
+                return ResultUtil.success(action + "成功");
             }
         }
         return ResultUtil.error("操作失败");
@@ -84,8 +90,10 @@ public class MajorController extends BaseController {
      * 根据id删除
      */
     @DeleteMapping("/{id}")
-    public Result delById(@PathVariable("id") String majorId){
-        if(majorService.removeById(majorId)){
+    public Result delById(@PathVariable("id") String majorId) {
+        if (majorService.removeById(majorId)) {
+            String logMsg = "删除专业，专业ID：" + majorId;
+            logOperate("专业管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
@@ -105,21 +113,21 @@ public class MajorController extends BaseController {
         Page<Major> page = new Page<>(majorQuery.getPageNum(), majorQuery.getPageSize());
 
         QueryWrapper<Major> wrapper = new QueryWrapper<>();
-        if(StringUtils.isNotBlank(majorQuery.getMajorName())){
-            wrapper.like("bm.major_name",majorQuery.getMajorName());
+        if (StringUtils.isNotBlank(majorQuery.getMajorName())) {
+            wrapper.like("bm.major_name", majorQuery.getMajorName());
         }
-        if(StringUtils.isNotBlank(majorQuery.getMajorCode())){
-            wrapper.like("bm.major_code",majorQuery.getMajorCode());
+        if (StringUtils.isNotBlank(majorQuery.getMajorCode())) {
+            wrapper.like("bm.major_code", majorQuery.getMajorCode());
         }
-        if(StringUtils.isNotBlank(majorQuery.getIsStop())){
+        if (StringUtils.isNotBlank(majorQuery.getIsStop())) {
             wrapper.eq("bm.is_stop", majorQuery.getIsStop());
         }
-        if(StringUtils.isNotBlank(majorQuery.getCollegeId())){
-            wrapper.eq("bc.college_id",majorQuery.getCollegeId());
+        if (StringUtils.isNotBlank(majorQuery.getCollegeId())) {
+            wrapper.eq("bc.college_id", majorQuery.getCollegeId());
         }
         wrapper.eq("bm.del_flag", "0");
         wrapper.orderByAsc("bm.major_code");
-        page = majorService.getPage(page,wrapper);
+        page = majorService.getPage(page, wrapper);
         PageResult<Major> pageBean = PageResult.init(page);
 
         return ResultUtil.success().buildData("page", pageBean);
@@ -129,16 +137,16 @@ public class MajorController extends BaseController {
     public Result list(@RequestBody MajorQuery majorQuery) {
         QueryWrapper<Major> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(majorQuery.getMajorName())) {
-            wrapper.like("bm.major_name",majorQuery.getMajorName());
+            wrapper.like("bm.major_name", majorQuery.getMajorName());
         }
         if (StringUtils.isNotBlank(majorQuery.getMajorCode())) {
-            wrapper.like("bm.major_code",majorQuery.getMajorCode());
+            wrapper.like("bm.major_code", majorQuery.getMajorCode());
         }
-        wrapper.eq("bm.is_stop","0");
+        wrapper.eq("bm.is_stop", "0");
         wrapper.eq("bm.del_flag", "0");
         wrapper.orderByAsc("bm.major_code");
         List<Major> list = majorService.getList(wrapper);
-        return ResultUtil.success().buildData("rows",list);
+        return ResultUtil.success().buildData("rows", list);
     }
 
 }

@@ -55,7 +55,8 @@ public class RoleController extends BaseController {
         List<String> powerIds = (List<String>) map.get("powerIds");
         //调用service完成权限分配
         roleService.assignPowers(roleId, powerIds);
-
+        String logMsg = "修改角色的权限，角色ID："+roleId;
+        logOperate("角色管理","UPDATE",logMsg);
         return ResultUtil.success();
     }
 
@@ -68,8 +69,8 @@ public class RoleController extends BaseController {
             role.setDelFlag("0");
             if (roleService.save(role)) {
                 String powerIds = role.getPowerIds();
+                String roleId = role.getRoleId();
                 if (StringUtils.isNotBlank(powerIds)) {
-                    String roleId = role.getRoleId();
                     List<RolePower> list = new ArrayList<>();
                     for (String powerId : powerIds.split(",")) {
                         RolePower tmp = RolePower.builder()
@@ -78,6 +79,8 @@ public class RoleController extends BaseController {
                     }
                     rolePowerService.saveBatch(list);
                 }
+                String logMsg = "添加角色，角色ID："+roleId;
+                logOperate("角色管理","ADD",logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -94,7 +97,8 @@ public class RoleController extends BaseController {
         if (powerService.checkDuplicate(power)) {
             power.setDelFlag("0");
             if (powerService.save(power)) {
-
+                String logMsg = "添加权限，权限ID："+power.getPowerId();
+                logOperate("权限管理","ADD",logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -148,6 +152,8 @@ public class RoleController extends BaseController {
     public Result updateRole(@RequestBody Role role) {
         if (roleService.checkDuplicate(role, role.getRoleId())) {
             if (roleService.updateById(role)) {
+                String logMsg = "修改角色，角色ID："+role.getRoleId();
+                logOperate("角色管理","UPDATE",logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -163,6 +169,8 @@ public class RoleController extends BaseController {
     public Result updatePower(@RequestBody Power power) {
         if (powerService.checkDuplicate(power, power.getPowerId())) {
             if (powerService.updateById(power)) {
+                String logMsg = "修改权限，权限ID："+power.getPowerId();
+                logOperate("权限管理","UPDATE",logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -186,21 +194,20 @@ public class RoleController extends BaseController {
         //删除原有角色
         userRoleService.remove(wrapper);
 
-        if (StringUtils.isBlank(roleIds)) {
-            return ResultUtil.success("操作成功");
+        String logMsg = "修改用户角色，用户ID："+userId;
+        if (StringUtils.isNotBlank(roleIds)) {
+            logMsg += "，角色ID："+roleIds;
+            List<UserRole> list = new ArrayList<>();
+            for (String roleId : roleIds.split(",")) {
+                UserRole userRole = UserRole.builder()
+                        .userId(userId).roleId(roleId).build();
+                list.add(userRole);
+            }
+            //重新插入角色
+            userRoleService.saveBatch(list);
         }
-
-        List<UserRole> list = new ArrayList<>();
-        for (String roleId : roleIds.split(",")) {
-            UserRole userRole = UserRole.builder()
-                    .userId(userId).roleId(roleId).build();
-            list.add(userRole);
-        }
-        //重新插入权限
-        if (userRoleService.saveBatch(list)) {
-            return ResultUtil.success("添加用户角色成功");
-        }
-        return ResultUtil.error("添加用户角色失败");
+        logOperate("角色管理","UPDATE",logMsg);
+        return ResultUtil.success("操作成功");
     }
 
     /**
@@ -217,21 +224,21 @@ public class RoleController extends BaseController {
 
         //删除原有权限
         rolePowerService.remove(wrapper);
+        String logMsg = "修改角色权限，角色ID："+roleId;
 
-        if (StringUtils.isBlank(powerIds)) {
-            return ResultUtil.success("操作成功");
+        if (StringUtils.isNotBlank(powerIds)) {
+            logMsg += "，权限ID："+powerIds;
+            List<RolePower> list = new ArrayList<>();
+            for (String powerId : powerIds.split(",")) {
+                RolePower rolePower = RolePower.builder()
+                        .roleId(roleId).powerId(powerId).build();
+                list.add(rolePower);
+            }
+            //重新插入权限
+            rolePowerService.saveBatch(list);
         }
-        List<RolePower> list = new ArrayList<>();
-        for (String powerId : powerIds.split(",")) {
-            RolePower rolePower = RolePower.builder()
-                    .roleId(roleId).powerId(powerId).build();
-            list.add(rolePower);
-        }
-        //重新插入权限
-        if (rolePowerService.saveBatch(list)) {
-            return ResultUtil.success("添加角色权限成功");
-        }
-        return ResultUtil.error("添加角色权限失败");
+        logOperate("角色管理","UPDATE",logMsg);
+        return ResultUtil.success("操作成功");
     }
 
     /**
@@ -240,17 +247,21 @@ public class RoleController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delRoleById(@PathVariable("id") String roleId){
         if(roleService.removeById(roleId)){
+            String logMsg = "删除角色，角色ID："+roleId;
+            logOperate("角色管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
     }
 
     /**
-     * 根据id删除角色
+     * 根据id删除权限
      */
     @DeleteMapping("/power/{id}")
     public Result delPowerById(@PathVariable("id") String powerId){
         if(powerService.removeById(powerId)){
+            String logMsg = "删除权限，权限ID："+powerId;
+            logOperate("权限管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");

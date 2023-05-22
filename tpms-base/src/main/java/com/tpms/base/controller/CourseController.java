@@ -45,8 +45,9 @@ public class CourseController extends BaseController {
         if(courseService.checkDuplicate(course)){
             course.setDelFlag("0");
             course.setIsStop("0");
-            boolean res = courseService.save(course);
-            if (res) {
+            if (courseService.save(course)) {
+                String logMsg = "添加课程，课程ID："+course.getCourseId();
+                logOperate("课程管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -65,6 +66,8 @@ public class CourseController extends BaseController {
 
         if (courseService.checkDuplicate(course,course.getCourseId())) {
             if (courseService.updateById(course)) {
+                String logMsg = "修改课程，课程ID："+course.getCourseId();
+                logOperate("课程管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -79,6 +82,8 @@ public class CourseController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delById(@PathVariable("id") String courseId){
         if(courseService.removeById(courseId)){
+            String logMsg = "删除课程，课程ID："+courseId;
+            logOperate("课程管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
@@ -106,7 +111,10 @@ public class CourseController extends BaseController {
                     .courseId(courseId).isStop(isStop).build();
 
             if (courseService.updateById(update)) {
-                return ResultUtil.success("1".equals(isStop)?"停用成功":"启用成功");
+                String action = "1".equals(isStop) ? "停用" : "启用";
+                String logMsg = action + "课程，课程ID：" + courseId;
+                logOperate("课程管理", "UPDATE", logMsg);
+                return ResultUtil.success(action + "成功");
             }
         }
         return ResultUtil.error("操作失败");
@@ -202,6 +210,8 @@ public class CourseController extends BaseController {
     public Result upload(MultipartFile file){
         try {
             EasyExcel.read(file.getInputStream(), ExcelCourseData.class, new ExcelCourseDataListener(courseService)).sheet().doRead();
+            String logMsg = "批量导入课程";
+            logOperate("课程管理", "ADD", logMsg);
             return ResultUtil.success("导入成功");
         }catch (Exception e){
             return ResultUtil.error("导入失败");

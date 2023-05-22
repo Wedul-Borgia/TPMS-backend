@@ -59,6 +59,8 @@ public class UserController extends BaseController {
             user.setUserStatus("1");
             user.setLevel("0");
             if (userService.save(user)) {
+                String logMsg = "添加用户，用户ID："+user.getUserId();
+                logOperate("用户管理","ADD",logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -75,6 +77,8 @@ public class UserController extends BaseController {
     public Result update(@RequestBody User user) {
         //调用Service更新
         if (userService.updateById(user)) {
+            String logMsg = "修改用户，用户ID："+user.getUserId();
+            logOperate("用户管理","UPDATE",logMsg);
             return ResultUtil.success("修改成功");
         }
         return ResultUtil.error("修改失败");
@@ -86,6 +90,8 @@ public class UserController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delById(@PathVariable("id") String userId){
         if(userService.removeById(userId)){
+            String logMsg = "删除用户，用户ID："+userId;
+            logOperate("用户管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
@@ -226,6 +232,8 @@ public class UserController extends BaseController {
             User update = User.builder().password(newPassword)
                     .userId(user.getUserId()).build();
             if (userService.updateById(update)) {
+                String logMsg = "修改用户密码，用户ID："+user.getUserId();
+                logOperate("用户管理","UPDATE",logMsg);
                 return ResultUtil.success("密码修改成功");
             } else {
                 return ResultUtil.error("密码修改失败");
@@ -244,6 +252,8 @@ public class UserController extends BaseController {
         User update = User.builder().password(password)
                 .userId(userId).build();
         if (userService.updateById(update)) {
+            String logMsg = "重置用户密码，用户ID："+userId;
+            logOperate("用户管理","UPDATE",logMsg);
             return ResultUtil.success("密码重置成功");
         } else {
             return ResultUtil.error("密码重置失败");

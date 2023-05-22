@@ -45,17 +45,19 @@ public class ProgramController extends BaseController {
             if (programService.save(program)) {
                 String courseIds = program.getCourseIds();
                 //课程不为空，培养方案添加课程
-                if(StringUtils.isNotBlank(courseIds)){
+                if (StringUtils.isNotBlank(courseIds)) {
                     String programId = program.getProgramId();
 
                     List<ProgramCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")){
+                    for (String courseId : courseIds.split(",")) {
                         ProgramCourse tmp = ProgramCourse.builder()
                                 .programId(programId).courseId(courseId).build();
                         list.add(tmp);
                     }
                     programCourseService.saveBatch(list);
                 }
+                String logMsg = "添加培养方案，培养方案ID：" + program.getProgramId();
+                logOperate("培养方案管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
@@ -69,32 +71,33 @@ public class ProgramController extends BaseController {
      */
     @PutMapping(value = "/")
     public Result updateProgram(@RequestBody Program program) {
-        if (programService.checkDuplicate(program,program.getProgramId())) {
+        if (programService.checkDuplicate(program, program.getProgramId())) {
             if (programService.updateById(program)) {
                 String courseIds = program.getCourseIds();
+                String programId = program.getProgramId();
 
                 //courseIds如果为pass，跳过修改培养方案课程
-                if("pass".equals(courseIds)){
-                    return ResultUtil.success("修改成功");
+                if (!"pass".equals(courseIds)) {
+                    LambdaQueryWrapper<ProgramCourse> wrapper = Wrappers.lambdaQuery();
+                    wrapper.eq(ProgramCourse::getProgramId, programId);
+
+                    //删除原有课程
+                    programCourseService.remove(wrapper);
                 }
 
-                String programId = program.getProgramId();
-                LambdaQueryWrapper<ProgramCourse> wrapper = Wrappers.lambdaQuery();
-                wrapper.eq(ProgramCourse::getProgramId, programId);
-
-                //删除原有课程
-                programCourseService.remove(wrapper);
-
                 //courseIds不为空，进行添加课程
-                if(StringUtils.isNotBlank(courseIds)){
+                if (StringUtils.isNotBlank(courseIds)) {
                     List<ProgramCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")){
+                    for (String courseId : courseIds.split(",")) {
                         ProgramCourse tmp = ProgramCourse.builder()
                                 .programId(programId).courseId(courseId).build();
                         list.add(tmp);
                     }
                     programCourseService.saveBatch(list);
                 }
+
+                String logMsg = "修改培养方案，培养方案ID：" + programId;
+                logOperate("培养方案管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
                 return ResultUtil.error("修改失败");
@@ -115,8 +118,11 @@ public class ProgramController extends BaseController {
             Program update = Program.builder()
                     .programId(programId).isStop(isStop).build();
 
+            String action = "1".equals(isStop) ? "停用" : "启用";
             if (programService.updateById(update)) {
-                return ResultUtil.success("1".equals(isStop)?"停用成功":"启用成功");
+                String logMsg = action+"培养方案，培养方案ID：" + programId;
+                logOperate("培养方案管理", "UPDATE", logMsg);
+                return ResultUtil.success(action+"成功");
             }
         }
         return ResultUtil.error("操作失败");
@@ -176,11 +182,13 @@ public class ProgramController extends BaseController {
      * 根据id删除
      */
     @DeleteMapping("/{id}")
-    public Result delById(@PathVariable("id") String programId){
-        if(programService.removeById(programId)){
+    public Result delById(@PathVariable("id") String programId) {
+        if (programService.removeById(programId)) {
             QueryWrapper<ProgramCourse> wrapper = new QueryWrapper<>();
             wrapper.eq("programId", programId);
             programCourseService.remove(wrapper);
+            String logMsg = "删除培养方案，培养方案ID：" + programId;
+            logOperate("培养方案管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
