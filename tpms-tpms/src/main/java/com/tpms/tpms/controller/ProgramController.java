@@ -171,4 +171,18 @@ public class ProgramController extends BaseController {
         program.setCourses(courses);
         return ResultUtil.success(program);
     }
+
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String programId){
+        if(programService.removeById(programId)){
+            QueryWrapper<ProgramCourse> wrapper = new QueryWrapper<>();
+            wrapper.eq("programId", programId);
+            programCourseService.remove(wrapper);
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
 }

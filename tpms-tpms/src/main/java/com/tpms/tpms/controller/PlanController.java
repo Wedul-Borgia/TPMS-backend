@@ -11,7 +11,6 @@ import com.tpms.common.web.bean.base.Course;
 import com.tpms.common.web.bean.query.PlanQuery;
 import com.tpms.common.web.bean.tp.Plan;
 import com.tpms.common.web.bean.tp.PlanCourse;
-import com.tpms.common.web.bean.tp.Program;
 import com.tpms.common.web.controller.BaseController;
 import com.tpms.tpms.service.PlanCourseService;
 import com.tpms.tpms.service.PlanService;
@@ -145,5 +144,19 @@ public class PlanController extends BaseController {
         List<Course> courses = planCourseService.getCourses(planId);
         plan.setCourses(courses);
         return ResultUtil.success(planId);
+    }
+
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String planId){
+        if(planService.removeById(planId)){
+            QueryWrapper<PlanCourse> wrapper = new QueryWrapper<>();
+            wrapper.eq("plan_id", planId);
+            planCourseService.remove(wrapper);
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
     }
 }

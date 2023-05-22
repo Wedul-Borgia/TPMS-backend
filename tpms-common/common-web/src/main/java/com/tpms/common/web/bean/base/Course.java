@@ -43,6 +43,7 @@ public class Course {
     /**
      * 删除标志
      */
+    @TableLogic(value = "0",delval = "1")
     private String delFlag;
 
     /**

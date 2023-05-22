@@ -80,6 +80,26 @@ public class UserController extends BaseController {
         return ResultUtil.error("修改失败");
     }
 
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String userId){
+        if(userService.removeById(userId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id查询
+     */
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable("id") String userId) {
+        User user = userService.getById(userId);
+        return ResultUtil.success(user);
+    }
+
     @PostMapping("/page")
     public Result page(@RequestBody UserQuery userQuery) {
         Page<User> page = new Page<>(userQuery.getPageNum(), userQuery.getPageSize());

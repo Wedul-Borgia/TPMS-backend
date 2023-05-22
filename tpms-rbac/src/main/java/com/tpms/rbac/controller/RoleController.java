@@ -2,8 +2,11 @@ package com.tpms.rbac.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
+import com.tpms.common.web.bean.query.RoleQuery;
 import com.tpms.common.web.bean.sys.Power;
 import com.tpms.common.web.bean.sys.Role;
 import com.tpms.common.web.controller.BaseController;
@@ -104,11 +107,18 @@ public class RoleController extends BaseController {
      * 根据ID获取角色信息
      */
     @GetMapping(value = "/{id}")
-    public Result findById(@PathVariable(name = "id") String roleId) throws Exception {
-        LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(Role::getRoleId, roleId);
-        Role role = roleService.getOne(wrapper);
+    public Result findRoleById(@PathVariable(name = "id") String roleId) throws Exception {
+        Role role = roleService.getById(roleId);
         return ResultUtil.success(role);
+    }
+
+    /**
+     * 根据ID获取权限信息
+     */
+    @GetMapping(value = "/power/{id}")
+    public Result findPowerById(@PathVariable(name = "id") String powerId) throws Exception {
+        Power power = powerService.getById(powerId);
+        return ResultUtil.success(power);
     }
 
     /**
@@ -224,6 +234,34 @@ public class RoleController extends BaseController {
         return ResultUtil.error("添加角色权限失败");
     }
 
+    /**
+     * 根据id删除角色
+     */
+    @DeleteMapping("/{id}")
+    public Result delRoleById(@PathVariable("id") String roleId){
+        if(roleService.removeById(roleId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id删除角色
+     */
+    @DeleteMapping("/power/{id}")
+    public Result delPowerById(@PathVariable("id") String powerId){
+        if(powerService.removeById(powerId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+
+    /**
+     * 获取角色列表
+     * @param role
+     * @return
+     */
     @PostMapping("/list")
     public Result list(@RequestBody Role role) {
         LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
@@ -233,6 +271,27 @@ public class RoleController extends BaseController {
         wrapper.orderByAsc(Role::getModifyTime);
         List<Role> list = roleService.list(wrapper);
         return ResultUtil.success().buildData("rows", list);
+    }
+
+    /**
+     * 获取角色分页列表
+     * @param roleQuery
+     * @return
+     */
+    @PostMapping("/page")
+    public Result page(@RequestBody RoleQuery roleQuery) {
+        Page<Role> page = new Page<>(roleQuery.getPageNum(), roleQuery.getPageSize());
+        LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
+        if (StringUtils.isNotBlank(roleQuery.getRoleName())) {
+            wrapper.like(Role::getRoleName, roleQuery.getRoleName());
+        }
+        if (StringUtils.isNotBlank(roleQuery.getRemark())) {
+            wrapper.like(Role::getRemark, roleQuery.getRemark());
+        }
+        wrapper.orderByAsc(Role::getModifyTime);
+        page = roleService.page(page,wrapper);
+        PageResult<Role> pageBean = PageResult.init(page);
+        return ResultUtil.success().buildData("page", pageBean);
     }
 
     @PostMapping("/power/list")

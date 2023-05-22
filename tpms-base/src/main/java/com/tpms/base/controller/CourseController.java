@@ -74,6 +74,26 @@ public class CourseController extends BaseController {
     }
 
     /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String courseId){
+        if(courseService.removeById(courseId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id查询
+     */
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable("id") String courseId) {
+        Course course = courseService.getById(courseId);
+        return ResultUtil.success(course);
+    }
+
+    /**
      * 启用停用
      */
     @PutMapping(value = "/stop")

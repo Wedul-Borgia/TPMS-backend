@@ -28,6 +28,9 @@ public class CollegeController extends BaseController {
     @Resource
     private CollegeService collegeService;
 
+    /**
+     * 添加学院
+     */
     @PostMapping("/")
     public Result add(@RequestBody College college) {
 
@@ -81,6 +84,31 @@ public class CollegeController extends BaseController {
         return ResultUtil.error("操作失败");
     }
 
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String collegeId){
+        if(collegeService.removeById(collegeId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id查询
+     */
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable("id") String collegeId) {
+        College college = collegeService.getById(collegeId);
+        return ResultUtil.success(college);
+    }
+
+    /**
+     * 分页查询
+     * @param collegeQuery
+     * @return
+     */
     @PostMapping("/page")
     public Result page(@RequestBody CollegeQuery collegeQuery) {
         Page<College> page = new Page<>(collegeQuery.getPageNum(), collegeQuery.getPageSize());
@@ -103,6 +131,11 @@ public class CollegeController extends BaseController {
         return ResultUtil.success().buildData("page", pageBean);
     }
 
+    /**
+     * 条件查询
+     * @param collegeQuery
+     * @return
+     */
     @PostMapping("/list")
     public Result list(@RequestBody CollegeQuery collegeQuery) {
         LambdaQueryWrapper<College> wrapper = Wrappers.lambdaQuery();

@@ -25,7 +25,12 @@ public class OfficeController extends BaseController {
     @Resource
     private UserService userService;
 
-    @PostMapping("/add")
+    /**
+     * 添加机构
+     * @param office
+     * @return
+     */
+    @PostMapping("/")
     public Result add(@RequestBody Office office) {
         if(officeService.getById(office.getOfficeId())!=null){
             return ResultUtil.error("机构编码已存在");
@@ -38,10 +43,44 @@ public class OfficeController extends BaseController {
         }
     }
 
+    /**
+     * 修改机构
+     * @param office
+     * @return
+     */
+    @PutMapping("/")
+    public Result update(@RequestBody Office office) {
+        //调用Service更新
+        if (officeService.updateById(office)) {
+            return ResultUtil.success("修改成功");
+        }
+        return ResultUtil.error("修改失败");
+    }
+
     @GetMapping("/list")
     public Result list() {
         List<Office> list = officeService.list();
         return ResultUtil.success().buildData("rows",list);
+    }
+
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String officeId){
+        if(officeService.removeById(officeId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id查询
+     */
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable("id") String officeId) {
+        Office office = officeService.getById(officeId);
+        return ResultUtil.success(office);
     }
 
 

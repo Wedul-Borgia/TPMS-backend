@@ -80,6 +80,26 @@ public class MajorController extends BaseController {
         return ResultUtil.error("操作失败");
     }
 
+    /**
+     * 根据id删除
+     */
+    @DeleteMapping("/{id}")
+    public Result delById(@PathVariable("id") String majorId){
+        if(majorService.removeById(majorId)){
+            return ResultUtil.success("删除成功");
+        }
+        return ResultUtil.error("删除失败");
+    }
+
+    /**
+     * 根据id查询
+     */
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable("id") String majorId) {
+        Major major = majorService.getById(majorId);
+        return ResultUtil.success(major);
+    }
+
     @PostMapping("/page")
     public Result page(@RequestBody MajorQuery majorQuery) {
         Page<Major> page = new Page<>(majorQuery.getPageNum(), majorQuery.getPageSize());
