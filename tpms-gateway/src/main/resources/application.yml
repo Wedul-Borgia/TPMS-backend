@@ -1,0 +1,44 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: tpms-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://localhost:8848
+
+#    alibaba在2020版之后不使用ribbon,这里使用loadbalancer代替,在配置文件中禁用ribbon
+    loadbalander:
+      ribbon:
+        enable: false
+
+    sentinel:
+      transport:
+        # 配置sentinel dashboard地址
+        dashboard: localhost:8080
+        # 默认端口8719，假如被占用会自动从8719开始依次+1扫描，直至找到未被占用的端口
+        port: 8719
+      scg:
+        fallback:
+          mode: response
+          response-status: 426
+          response-body: error request
+
+    gateway:
+      routes:
+        - id: tpms-sys
+          uri: lb://tpms-sys
+          predicates:
+            - Path=/sys/**
+        - id: tpms-base
+          uri: lb://tpms-base
+          predicates:
+            - Path=/base/**
+        - id: tpms-tpms
+          uri: lb://tpms-tpms
+          predicates:
+            - Path=/tp/**
+#         filters:
+#           - StripPrefix=1
