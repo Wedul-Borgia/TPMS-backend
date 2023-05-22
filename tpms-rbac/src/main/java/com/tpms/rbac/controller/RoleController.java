@@ -125,7 +125,7 @@ public class RoleController extends BaseController {
     }
 
     /**
-     * 根据用户ID获取全部权限
+     * 根据用户ID获取角色
      *
      * @param userId
      * @return
@@ -134,10 +134,11 @@ public class RoleController extends BaseController {
     public Result findRolesByUserId(@PathVariable(name = "id") String userId) {
         LambdaQueryWrapper<UserRole> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(UserRole::getUserId, userId);
-        List<UserRole> roleIdList = userRoleService.list();
+        List<UserRole> roleIdList = userRoleService.list(wrapper);
         if (!ObjectUtils.isEmpty(roleIdList)) {
             List<Role> roles = roleService.getByRoleIds(roleIdList);
             if (!ObjectUtils.isEmpty(roles)) {
+
                 return ResultUtil.success(roles);
             }
         }
@@ -246,6 +247,10 @@ public class RoleController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delRoleById(@PathVariable("id") String roleId){
         if(roleService.removeById(roleId)){
+            //删除角色权限关系
+            rolePowerService.delByRoleId(roleId);
+            //删除用户角色关系
+            userRoleService.delByRoleId(roleId);
             String logMsg = "删除角色，角色ID："+roleId;
             logOperate("角色管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
@@ -259,6 +264,7 @@ public class RoleController extends BaseController {
     @DeleteMapping("/power/{id}")
     public Result delPowerById(@PathVariable("id") String powerId){
         if(powerService.removeById(powerId)){
+            rolePowerService.delByPowerId(powerId);
             String logMsg = "删除权限，权限ID："+powerId;
             logOperate("权限管理","DELETE",logMsg);
             return ResultUtil.success("删除成功");
@@ -309,6 +315,12 @@ public class RoleController extends BaseController {
         LambdaQueryWrapper<Power> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(power.getPowerName())) {
             wrapper.like(Power::getPowerName, power.getPowerName());
+        }
+        if (StringUtils.isNotBlank(power.getPowerType())) {
+            wrapper.eq(Power::getPowerType, power.getPowerType());
+        }
+        if (StringUtils.isNotBlank(power.getLevel())) {
+            wrapper.eq(Power::getLevel, power.getLevel());
         }
         wrapper.orderByAsc(Power::getModifyTime);
         List<Power> list = powerService.list(wrapper);

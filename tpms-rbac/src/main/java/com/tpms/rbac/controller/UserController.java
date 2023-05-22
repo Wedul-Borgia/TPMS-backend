@@ -57,6 +57,7 @@ public class UserController extends BaseController {
                 password = "123456";
             }
             password = new Md5Hash(password, user.getUsername(), 3).toString();
+            user.setOfficeName(officeName);
             user.setPassword(password);
             user.setDelFlag("0");
             user.setUserStatus("1");
@@ -143,6 +144,9 @@ public class UserController extends BaseController {
         if (StringUtils.isNotBlank(user.getUserSex())) {
             wrapper.eq(User::getUserSex, user.getUserSex());
         }
+        if (StringUtils.isNotBlank(user.getUserStatus())) {
+            wrapper.eq(User::getUserStatus, user.getUserStatus());
+        }
         wrapper.orderByAsc(User::getUsername);
         List<User> list = userService.list(wrapper);
         return ResultUtil.success().buildData("rows", list);
@@ -215,23 +219,21 @@ public class UserController extends BaseController {
 
     @PutMapping("/password")
     public Result updatePwd(@RequestBody Map<String, Object> map) {
-        String username = (String) map.get("username");
+        String userId = (String) map.get("userId");
         String oldPassword = (String) map.get("oldPassword");
         String newPassword = (String) map.get("newPassword");
 
-        LambdaQueryWrapper<User> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(User::getUsername, username);
-        User user = userService.getOne(wrapper);
+        User user = userService.getById(userId);
         if (user == null) {
             return ResultUtil.error("获取用户异常");
         }
 
         String password = user.getPassword();
 
-        oldPassword = new Md5Hash(oldPassword, username, 3).toString();
+        oldPassword = new Md5Hash(oldPassword, user.getUsername(), 3).toString();
 
         if (password.equals(oldPassword)) {
-            newPassword = new Md5Hash(newPassword, username, 3).toString();
+            newPassword = new Md5Hash(newPassword, user.getUsername(), 3).toString();
             User update = User.builder().password(newPassword)
                     .userId(user.getUserId()).build();
             if (userService.updateById(update)) {

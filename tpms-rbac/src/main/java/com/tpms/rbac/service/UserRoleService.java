@@ -8,4 +8,7 @@ import com.tpms.rbac.entity.UserRole;
  * @date 2023/5/13 - 21:26
  */
 public interface UserRoleService extends IService<UserRole> {
+    void delByRoleId(String roleId);
+
+    void delByUserId(String userId);
 }

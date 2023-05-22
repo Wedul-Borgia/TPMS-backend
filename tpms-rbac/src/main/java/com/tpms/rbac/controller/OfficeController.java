@@ -8,11 +8,13 @@ import com.tpms.common.web.controller.BaseController;
 import com.tpms.rbac.service.OfficeService;
 import com.tpms.rbac.service.OperateLogService;
 import com.tpms.rbac.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wld
@@ -90,6 +92,28 @@ public class OfficeController extends BaseController {
     public Result getById(@PathVariable("id") String officeId) {
         Office office = officeService.getById(officeId);
         return ResultUtil.success(office);
+    }
+
+    /**
+     * 启用停用
+     */
+    @PutMapping(value = "/stop")
+    public Result updateStop(@RequestBody Map<String, Object> map) {
+        String officeId = (String) map.get("officeId");
+        String isStop = (String) map.get("isStop");
+
+        if (StringUtils.isNotBlank(officeId) && StringUtils.isNotBlank(isStop)) {
+            Office update = Office.builder()
+                    .officeId(officeId).isStop(isStop).build();
+
+            if (officeService.updateById(update)) {
+                String action = "1".equals(isStop) ? "停用" : "启用";
+                String logMsg = action + "机构，机构ID：" + officeId;
+                logOperate("机构管理", "UPDATE", logMsg);
+                return ResultUtil.success(action + "成功");
+            }
+        }
+        return ResultUtil.error("操作失败");
     }
 
     @Resource
