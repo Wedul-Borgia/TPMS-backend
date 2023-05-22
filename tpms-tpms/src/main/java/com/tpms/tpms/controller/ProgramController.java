@@ -9,9 +9,11 @@ import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.base.Course;
 import com.tpms.common.web.bean.query.ProgramQuery;
+import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.bean.tp.Program;
 import com.tpms.common.web.bean.tp.ProgramCourse;
 import com.tpms.common.web.controller.BaseController;
+import com.tpms.tpms.feign.LogFeignService;
 import com.tpms.tpms.service.ProgramCourseService;
 import com.tpms.tpms.service.ProgramService;
 import org.apache.commons.lang3.StringUtils;
@@ -192,5 +194,19 @@ public class ProgramController extends BaseController {
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
+    }
+
+    @Resource
+    public LogFeignService logFeignService;
+
+    private void logOperate(String logModule,String logEvent,String logMsg){
+        logFeignService.log(OperateLog.builder()
+                .officeId(this.officeId)
+                .officeName(this.officeName)
+                .logUser(this.userName)
+                .logModule(logModule)
+                .logEvent(logEvent)
+                .logMessage(this.userName+logMsg)
+                .build());
     }
 }

@@ -2,12 +2,14 @@ package com.tpms.base.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tpms.base.feign.LogFeignService;
 import com.tpms.base.service.MajorService;
 import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.base.Major;
 import com.tpms.common.web.bean.query.MajorQuery;
+import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.controller.BaseController;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -147,6 +149,19 @@ public class MajorController extends BaseController {
         wrapper.orderByAsc("bm.major_code");
         List<Major> list = majorService.getList(wrapper);
         return ResultUtil.success().buildData("rows", list);
+    }
+
+    @Resource
+    private LogFeignService logFeignService;
+    private void logOperate(String logModule,String logEvent,String logMsg){
+        logFeignService.log(OperateLog.builder()
+                .officeId(this.officeId)
+                .officeName(this.officeName)
+                .logUser(this.userName)
+                .logModule(logModule)
+                .logEvent(logEvent)
+                .logMessage(this.userName+logMsg)
+                .build());
     }
 
 }

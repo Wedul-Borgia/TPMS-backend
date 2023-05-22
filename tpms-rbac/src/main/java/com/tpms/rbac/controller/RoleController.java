@@ -7,20 +7,19 @@ import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.query.RoleQuery;
+import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.bean.sys.Power;
 import com.tpms.common.web.bean.sys.Role;
 import com.tpms.common.web.controller.BaseController;
 import com.tpms.rbac.entity.RolePower;
 import com.tpms.rbac.entity.UserRole;
-import com.tpms.rbac.service.PowerService;
-import com.tpms.rbac.service.RolePowerService;
-import com.tpms.rbac.service.RoleService;
-import com.tpms.rbac.service.UserRoleService;
+import com.tpms.rbac.service.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -314,5 +313,20 @@ public class RoleController extends BaseController {
         wrapper.orderByAsc(Power::getModifyTime);
         List<Power> list = powerService.list(wrapper);
         return ResultUtil.success().buildData("rows", list);
+    }
+
+    @Resource
+    private OperateLogService operateLogService;
+
+    private void logOperate(String logModule, String logEvent, String logMsg) {
+        operateLogService.save(OperateLog.builder()
+                .officeId(this.officeId)
+                .officeName(this.officeName)
+                .logUser(this.userName)
+                .logModule(logModule)
+                .logEvent(logEvent)
+                .logMessage(this.userName + logMsg)
+                .logTime(String.valueOf(LocalDateTime.now()))
+                .build());
     }
 }

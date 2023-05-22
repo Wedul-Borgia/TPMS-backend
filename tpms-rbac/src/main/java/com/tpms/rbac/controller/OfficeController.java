@@ -3,12 +3,15 @@ package com.tpms.rbac.controller;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.sys.Office;
+import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.controller.BaseController;
 import com.tpms.rbac.service.OfficeService;
+import com.tpms.rbac.service.OperateLogService;
 import com.tpms.rbac.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -89,5 +92,19 @@ public class OfficeController extends BaseController {
         return ResultUtil.success(office);
     }
 
+    @Resource
+    private OperateLogService operateLogService;
+
+    private void logOperate(String logModule, String logEvent, String logMsg) {
+        operateLogService.save(OperateLog.builder()
+                .officeId(this.officeId)
+                .officeName(this.officeName)
+                .logUser(this.userName)
+                .logModule(logModule)
+                .logEvent(logEvent)
+                .logMessage(this.userName + logMsg)
+                .logTime(String.valueOf(LocalDateTime.now()))
+                .build());
+    }
 
 }

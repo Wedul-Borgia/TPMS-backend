@@ -1,4 +1,4 @@
-package com.tpms.common.web.feign;
+package com.tpms.tpms.feign;
 
 import com.tpms.common.web.bean.sys.OperateLog;
 import org.springframework.cloud.openfeign.FeignClient;

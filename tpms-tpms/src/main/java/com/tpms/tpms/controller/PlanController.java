@@ -9,9 +9,11 @@ import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.base.Course;
 import com.tpms.common.web.bean.query.PlanQuery;
+import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.bean.tp.Plan;
 import com.tpms.common.web.bean.tp.PlanCourse;
 import com.tpms.common.web.controller.BaseController;
+import com.tpms.tpms.feign.LogFeignService;
 import com.tpms.tpms.service.PlanCourseService;
 import com.tpms.tpms.service.PlanService;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +35,7 @@ public class PlanController extends BaseController {
     private PlanService planService;
     @Resource
     private PlanCourseService planCourseService;
+
 
     /**
      * 添加培养计划
@@ -167,4 +170,19 @@ public class PlanController extends BaseController {
         }
         return ResultUtil.error("删除失败");
     }
+
+    @Resource
+    public LogFeignService logFeignService;
+
+    private void logOperate(String logModule,String logEvent,String logMsg){
+        logFeignService.log(OperateLog.builder()
+                .officeId(this.officeId)
+                .officeName(this.officeName)
+                .logUser(this.userName)
+                .logModule(logModule)
+                .logEvent(logEvent)
+                .logMessage(this.userName+logMsg)
+                .build());
+    }
+
 }
