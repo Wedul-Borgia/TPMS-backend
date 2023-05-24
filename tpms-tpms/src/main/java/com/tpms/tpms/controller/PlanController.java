@@ -1,9 +1,13 @@
 package com.tpms.tpms.controller;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.deepoove.poi.XWPFTemplate;
+import com.deepoove.poi.data.*;
+import com.deepoove.poi.util.PoitlIOUtils;
 import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
@@ -20,8 +24,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wld
@@ -43,7 +54,7 @@ public class PlanController extends BaseController {
     @PostMapping(value = "/")
     public Result addProgram(@RequestBody Plan plan) throws Exception {
         //检查是否已有培养计划
-        if (planService.checkYearDuplicate(plan)) {
+        if (!planService.checkYearDuplicate(plan)) {
             return ResultUtil.error("当前专业在当前年份已有培养计划");
         }
 
@@ -60,7 +71,9 @@ public class PlanController extends BaseController {
                     List<PlanCourse> list = new ArrayList<>();
                     for (String courseId : courseIds.split(",")) {
                         PlanCourse tmp = PlanCourse.builder()
-                                .planId(planId).courseId(courseId).build();
+                                .planId(planId).courseId(courseId)
+                                .theYear(plan.getTheYear())
+                                .majorId(plan.getMajorId()).build();
                         list.add(tmp);
                     }
                     planCourseService.saveBatch(list);
@@ -94,7 +107,7 @@ public class PlanController extends BaseController {
 
                 //删除原有课程
                 planCourseService.remove(wrapper);
-                String logMsg = "修改培养计划，培养计划ID：" +planId;
+                String logMsg = "修改培养计划，培养计划ID：" + planId;
 
                 //courseIds不为空，进行添加课程
                 if (StringUtils.isNotBlank(courseIds)) {
@@ -119,7 +132,7 @@ public class PlanController extends BaseController {
 
     @PostMapping("/page")
     public Result page(@RequestBody PlanQuery planQuery) {
-        Page<Plan> page = new Page<>(planQuery.getPageNum(), planQuery.getPageSize());
+        Page<Plan> page = new Page<>(planQuery.getPageNo(), planQuery.getPageSize());
 
         QueryWrapper<Plan> wrapper = new QueryWrapper<>();
 
@@ -149,10 +162,10 @@ public class PlanController extends BaseController {
      */
     @GetMapping("/{id}")
     public Result getById(@PathVariable("id") String planId) {
-        Plan plan = planService.getById(planId);
+        Plan plan = planService.getByPlanId(planId);
         List<Course> courses = planCourseService.getCourses(planId);
         plan.setCourses(courses);
-        return ResultUtil.success(planId);
+        return ResultUtil.success(plan);
     }
 
     /**
@@ -165,23 +178,131 @@ public class PlanController extends BaseController {
             wrapper.eq("plan_id", planId);
             planCourseService.remove(wrapper);
             String logMsg = "删除培养计划，培养计划ID：" + planId;
-            logOperate("培养计划管理","DELETE",logMsg);
+            logOperate("培养计划管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
     }
 
+    /**
+     * 导出文件
+     */
+    @GetMapping("/download/{id}")
+    public void download(@PathVariable("id") String planId, HttpServletResponse response) throws IOException {
+
+        Plan plan = planService.getByPlanId(planId);
+        if (plan == null) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("utf-8");
+            Map<String, String> map = new HashMap<>();
+            map.put("status", "failure");
+            map.put("message", "培养计划不存在");
+            response.getWriter().println(JSONUtils.toJSONString(map));
+            return;
+        }
+
+        try {
+            response.setContentType("application/octet-stream");
+            // 这里URLEncoder.encode可以防止中文乱码
+            String fileName = URLEncoder.encode(plan.getPlanName(), "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".docx");
+            OutputStream out = response.getOutputStream();
+            BufferedOutputStream bos = new BufferedOutputStream(out);
+
+            //填入数据
+            Map<String, Object> data = new HashMap<>();
+
+            //表格宽度
+            int[] width = {20, 40, 20, 20};
+            //表头和空行
+            RowRenderData header = Rows.create("课程编号", "课程名称", "学分", "执行学期");
+            RowRenderData none = Rows.create("无", null, null, null, null);
+            //合并单元格
+            MergeCellRule rule = MergeCellRule.builder()
+                    .map(MergeCellRule.Grid.of(1, 0), MergeCellRule.Grid.of(1, 3))
+                    .build();
+
+            //表格
+            TableRenderData course0 = Tables.of(header).percentWidth("100%", width)
+                    .center().create();
+            TableRenderData course1 = Tables.of(header).percentWidth("100%", width)
+                    .center().create();
+            TableRenderData course2 = Tables.of(header).percentWidth("100%", width)
+                    .center().create();
+            TableRenderData course3 = Tables.of(header).percentWidth("100%", width)
+                    .center().create();
+
+            List<Course> courses = planCourseService.getCourses(planId);
+            if (courses != null && courses.size() > 0) {
+                for (Course course : courses) {
+                    String courseType = course.getCourseType();
+                    RowRenderData row = Rows.create(course.getCourseCode(), course.getCourseName(),
+                            String.valueOf(course.getCredit()), null);
+                    if ("0".equals(courseType)) {
+                        course0.addRow(row);
+                    } else if ("1".equals(courseType)) {
+                        course1.addRow(row);
+                    } else if ("2".equals(courseType)) {
+                        course2.addRow(row);
+                    } else if ("3".equals(courseType)) {
+                        course3.addRow(row);
+                    }
+                }
+            }
+
+            if (course0.getRows().size() < 1) {
+                course0.addRow(none);
+                course0.setMergeRule(rule);
+            }
+            if (course1.getRows().size() < 1) {
+                course1.addRow(none);
+                course1.setMergeRule(rule);
+            }
+            if (course2.getRows().size() < 1) {
+                course2.addRow(none);
+                course2.setMergeRule(rule);
+            }
+            if (course3.getRows().size() < 1) {
+                course3.addRow(none);
+                course3.setMergeRule(rule);
+            }
+
+            data.put("course0", course0);
+            data.put("course1", course1);
+            data.put("course2", course2);
+            data.put("course3", course3);
+            data.put("plan", plan);
+            data.put("total", plan.getBxCredit() + plan.getXxCredit());
+
+            XWPFTemplate template = XWPFTemplate.compile("C:\\Users\\wedul\\Desktop\\plan.docx").render(data);
+            template.write(bos);
+            bos.flush();
+            out.flush();
+            PoitlIOUtils.closeQuietlyMulti(template, bos, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 重置response
+            response.reset();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("utf-8");
+            Map<String, String> map = new HashMap<>();
+            map.put("status", "failure");
+            map.put("message", "下载文件失败" + e.getMessage());
+            response.getWriter().println(JSONUtils.toJSONString(map));
+        }
+    }
+
     @Resource
     public LogFeignService logFeignService;
 
-    private void logOperate(String logModule,String logEvent,String logMsg){
+    private void logOperate(String logModule, String logEvent, String logMsg) {
         logFeignService.log(OperateLog.builder()
                 .officeId(this.officeId)
                 .officeName(this.officeName)
                 .logUser(this.userName)
                 .logModule(logModule)
                 .logEvent(logEvent)
-                .logMessage(this.userName+logMsg)
+                .logMessage(this.userName + logMsg)
                 .build());
     }
 
