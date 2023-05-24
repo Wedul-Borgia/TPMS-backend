@@ -76,4 +76,9 @@ public class Power {
      * 权限等级 0 普通 1 SAAS
      */
     private String level;
+
+    /**
+     * 父级标识
+     */
+    private String parentCode;
 }

@@ -191,6 +191,27 @@ public class UserController extends BaseController {
     }
 
     /**
+     * 根据id查询
+     */
+    @GetMapping("/reflash")
+    public Result reflash() {
+        Subject subject = SecurityUtils.getSubject();
+        User current = userService.getById(userId);
+        String currentUserName = this.userName;
+        if (subject.isAuthenticated()) {
+            subject.logout();
+        }
+        //构造登录令牌
+        UsernamePasswordToken upToken = new UsernamePasswordToken(currentUserName, current.getPassword());
+        //调用login方法,进入realm完成认证
+        subject.login(upToken);
+        //获取sessionId
+        Object sessionId = subject.getSession().getId();
+        //构造返回结果
+        return ResultUtil.success(sessionId);
+    }
+
+    /**
      * 用户登录成功之后,获取用户信息
      */
     @PostMapping(value = "/profile")
@@ -203,6 +224,8 @@ public class UserController extends BaseController {
         ProfileResult result = (ProfileResult) principals.getPrimaryPrincipal();
         return ResultUtil.success(result);
     }
+
+
 
     /**
      * 用户登录

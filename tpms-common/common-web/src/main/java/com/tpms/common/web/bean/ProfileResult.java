@@ -5,6 +5,7 @@ import com.tpms.common.web.bean.sys.Role;
 import com.tpms.common.web.bean.sys.User;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -36,11 +37,14 @@ public class ProfileResult implements Serializable {
         Set<String> menus = new HashSet<>();
         Set<String> points = new HashSet<>();
         Set<String> apis = new HashSet<>();
-        System.out.println(String.valueOf(list));
         for (Power power : list) {
             String code = power.getPowerCode();
+            String parent = power.getParentCode();
             if("1".equals(power.getPowerType())) {
                 menus.add(code);
+                if(StringUtils.isNotBlank(parent)&&!menus.contains(parent)){
+                    menus.add(parent);
+                }
             }else if("2".equals(power.getPowerType())) {
                 points.add(code);
             }else {

@@ -64,6 +64,7 @@ public class ShiroConfiguration {
         Map<String, String> filterMap = new LinkedHashMap<>();
         //anon -- 匿名访问
         filterMap.put("/user/login", "anon");
+        filterMap.put("/office/list", "anon");
         filterMap.put("/autherror", "anon");
 
         //perms -- 具有某中权限 (使用注解配置授权)
@@ -123,6 +124,8 @@ public class ShiroConfiguration {
         RedisCacheManager redisCacheManager = new RedisCacheManager();
         redisCacheManager.setRedisManager(redisManager());
         redisCacheManager.setPrincipalIdFieldName("userId");
+        //用户权限信息缓存时间
+        redisCacheManager.setExpire(200000);
         //设置序列化方式
         redisCacheManager.setKeySerializer(new StringSerializer());
         redisCacheManager.setValueSerializer(new ObjectSerializer());

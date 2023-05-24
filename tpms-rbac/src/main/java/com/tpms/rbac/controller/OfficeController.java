@@ -1,7 +1,12 @@
 package com.tpms.rbac.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
+import com.tpms.common.web.bean.query.OfficeQuery;
 import com.tpms.common.web.bean.sys.Office;
 import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.controller.BaseController;
@@ -66,10 +71,45 @@ public class OfficeController extends BaseController {
         return ResultUtil.error("修改失败");
     }
 
-    @GetMapping("/list")
-    public Result list() {
-        List<Office> list = officeService.list();
+    @PostMapping("/list")
+    public Result list(@RequestBody Office office) {
+        LambdaQueryWrapper<Office> wrapper = Wrappers.lambdaQuery();
+        if (StringUtils.isNotBlank(office.getOfficeName())) {
+            wrapper.like(Office::getOfficeName,office.getOfficeName());
+        }
+        if (StringUtils.isNotBlank(office.getOfficeCode())) {
+            wrapper.like(Office::getOfficeCode, office.getOfficeCode());
+        }
+        if (StringUtils.isNotBlank(office.getIsStop())) {
+            wrapper.like(Office::getIsStop, office.getIsStop());
+        }
+        wrapper.orderByAsc(Office::getOfficeCode);
+        List<Office> list = officeService.list(wrapper);
         return ResultUtil.success().buildData("rows",list);
+    }
+
+    /**
+     * 获取机构分页列表
+     * @param officeQuery
+     * @return
+     */
+    @PostMapping("/page")
+    public Result page(@RequestBody OfficeQuery officeQuery) {
+        Page<Office> page = new Page<>(officeQuery.getPageNum(), officeQuery.getPageSize());
+        LambdaQueryWrapper<Office> wrapper = Wrappers.lambdaQuery();
+        if (StringUtils.isNotBlank(officeQuery.getOfficeName())) {
+            wrapper.like(Office::getOfficeName, officeQuery.getOfficeName());
+        }
+        if (StringUtils.isNotBlank(officeQuery.getOfficeCode())) {
+            wrapper.like(Office::getOfficeCode, officeQuery.getOfficeCode());
+        }
+        if (StringUtils.isNotBlank(officeQuery.getIsStop())) {
+            wrapper.like(Office::getIsStop, officeQuery.getIsStop());
+        }
+        wrapper.orderByAsc(Office::getOfficeCode);
+        page = officeService.page(page,wrapper);
+        PageResult<Office> pageBean = PageResult.init(page);
+        return ResultUtil.success().buildData("page", pageBean);
     }
 
     /**

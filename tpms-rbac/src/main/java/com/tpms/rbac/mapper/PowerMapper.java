@@ -14,7 +14,7 @@ import java.util.List;
 @Mapper
 public interface PowerMapper extends BaseMapper<Power> {
 
-    @Select("select power_code from sys_power sp " +
+    @Select("select power_code, parent_code from sys_power sp " +
             "left join sys_role_power srp on srp.power_id = sp.power_id " +
             "left join sys_user_role sur on sur.role_id = srp.role_id " +
             "where sur.user_id = #{userId} and sp.del_flag = '0'")
