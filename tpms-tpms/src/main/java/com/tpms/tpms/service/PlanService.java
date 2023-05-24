@@ -17,4 +17,6 @@ public interface PlanService extends IService<Plan> {
     boolean checkDuplicate(Plan plan, String planId);
 
     Page<Plan> getPage(Page<Plan> page, Wrapper<Plan> wrapper);
+
+    Plan getByPlanId(String planId);
 }

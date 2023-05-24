@@ -57,4 +57,9 @@ public class PlanServiceImpl extends ServiceImpl<PlanMapper, Plan> implements Pl
     public Page<Plan> getPage(Page<Plan> page, Wrapper<Plan> wrapper) {
         return planMapper.getPage(page, wrapper);
     }
+
+    @Override
+    public Plan getByPlanId(String planId) {
+        return planMapper.getByPlanId(planId);
+    }
 }

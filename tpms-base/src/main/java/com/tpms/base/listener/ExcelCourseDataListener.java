@@ -31,6 +31,10 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
     private List<String> existName = new ArrayList<>();
     private List<String> existCode = new ArrayList<>();
 
+    private Integer success = 0;
+    private Integer error = 0;
+    private String msg;
+
     /**
      * 因为不能交给spring管理，所以需要自己new，不能自动注入
      */
@@ -41,8 +45,9 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
     @Override
     public void invoke(ExcelCourseData excelCourseData, AnalysisContext analysisContext) {
         if (excelCourseData == null) {
+            msg = "文件数据为空";
             try {
-                throw new Exception("文件数据为空");
+                throw new Exception(msg);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -51,8 +56,8 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
         String courseName = excelCourseData.getCourseName();
         String courseCode = excelCourseData.getCourseCode();
 
-        if(existName.contains(courseName) || existCode.contains(courseCode)){
-            return;
+        if (existName.contains(courseName) || existCode.contains(courseCode)) {
+            error++;
         }
 
         Course course = Course.builder()
@@ -75,6 +80,8 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
                 existName = new ArrayList<>();
                 existCode = new ArrayList<>();
             }
+        } else {
+            error++;
         }
 
     }
@@ -82,8 +89,15 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
         // 这里也要保存数据，确保最后遗留的数据也存储到数据库
-        saveData();
-        log.info("所有数据解析完成！");
+        if(courses.size()>0){
+            saveData();
+        }
+        this.msg = "导入成功" + success + "条数据，导入失败" + error + "条数据";
+        log.info("所有数据解析完成！" + msg);
+    }
+
+    public String getMsg(){
+        return msg;
     }
 
     /**
@@ -91,6 +105,7 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
      */
     private void saveData() {
         log.info("{}条数据，开始存储数据库！", courses.size());
+        success += courses.size();
         courseService.saveBatch(courses);
         log.info("存储数据库成功！");
     }

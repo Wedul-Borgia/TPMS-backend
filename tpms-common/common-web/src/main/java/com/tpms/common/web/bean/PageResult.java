@@ -29,7 +29,7 @@ public class PageResult<T> implements Serializable {
     /**
      * 当前的页码
      */
-    private Long current;
+    private Long pageNo;
 
     /**
      * 一共有多少条记录
@@ -39,17 +39,17 @@ public class PageResult<T> implements Serializable {
     /**
      * 一共有多少页
      */
-    private Long pages;
+//    private Long pages;
 
     /**
      * 每一页所显示的数据
      */
-    private List<T> result;
+    private List<T> pageData;
 
     /**
      * 分页请求路径
      */
-    private String url;
+//    private String url;
 
     /**
      * 将MyBatisPlus返回的IPage数据封装为自定义的PageBean
@@ -60,11 +60,11 @@ public class PageResult<T> implements Serializable {
      */
     public static <T> PageResult<T> init(IPage<T> page) {
         PageResult<T> pageBean = new PageResult<>();
-        pageBean.setCurrent(page.getCurrent());
+        pageBean.setPageNo(page.getCurrent());
         pageBean.setPageSize(page.getSize());
-        pageBean.setPages(page.getPages());
+//        pageBean.setPages(page.getPages());
         pageBean.setTotal(page.getTotal());
-        pageBean.setResult(page.getRecords());
+        pageBean.setPageData(page.getRecords());
         return pageBean;
     }
 

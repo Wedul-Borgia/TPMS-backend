@@ -68,6 +68,36 @@ public class Program implements Serializable {
      */
     private String majorId;
 
+    /**
+     *培养目标
+     */
+    private String targets;
+
+    /**
+     *毕业要求
+     */
+    private String requires;
+
+    /**
+     * 必修要求学分
+     */
+    private Float bxCredit;
+
+    /**
+     * 选修要求学分
+     */
+    private Float xxCredit;
+
+    /**
+     * 学制
+     */
+    private String xuezhi;
+
+    /**
+     * 学位
+     */
+    private String xuewei;
+
     @TableField(exist = false)
     private String majorName;
 

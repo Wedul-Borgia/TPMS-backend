@@ -66,6 +66,7 @@ public class ShiroConfiguration {
         filterMap.put("/user/login", "anon");
         filterMap.put("/office/list", "anon");
         filterMap.put("/autherror", "anon");
+        filterMap.put("/log/log", "anon");
 
         //perms -- 具有某中权限 (使用注解配置授权)
         filterMap.put("/user/page","perms[API-USER]");

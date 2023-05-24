@@ -12,14 +12,14 @@ public class PageQuery {
     /**
      * 页码
      */
-    private Integer pageNum;
+    private Integer pageNo;
     /**
      * 页面大小
      */
     private Integer pageSize;
 
-    public Integer getPageNum() {
-        return pageNum == null ? 1 : pageNum;
+    public Integer getPageNo() {
+        return pageNo == null ? 1 : pageNo;
     }
 
     public Integer getPageSize() {

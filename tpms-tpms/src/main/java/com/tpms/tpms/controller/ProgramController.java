@@ -132,7 +132,7 @@ public class ProgramController extends BaseController {
 
     @PostMapping("/page")
     public Result page(@RequestBody ProgramQuery programQuery) {
-        Page<Program> page = new Page<>(programQuery.getPageNum(), programQuery.getPageSize());
+        Page<Program> page = new Page<>(programQuery.getPageNo(), programQuery.getPageSize());
 
         QueryWrapper<Program> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(programQuery.getProgramName())) {

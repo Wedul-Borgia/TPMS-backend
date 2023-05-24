@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
+import com.tpms.common.web.bean.query.PowerQuery;
 import com.tpms.common.web.bean.query.RoleQuery;
 import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.bean.sys.Power;
@@ -278,15 +279,15 @@ public class RoleController extends BaseController {
      * @param role
      * @return
      */
-    @PostMapping("/list")
-    public Result list(@RequestBody Role role) {
+    @GetMapping("/list")
+    public Result list(Role role) {
         LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(role.getRoleName())) {
             wrapper.like(Role::getRoleName, role.getRoleName());
         }
         wrapper.orderByAsc(Role::getModifyTime);
         List<Role> list = roleService.list(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     /**
@@ -294,9 +295,9 @@ public class RoleController extends BaseController {
      * @param roleQuery
      * @return
      */
-    @PostMapping("/page")
-    public Result page(@RequestBody RoleQuery roleQuery) {
-        Page<Role> page = new Page<>(roleQuery.getPageNum(), roleQuery.getPageSize());
+    @GetMapping("/page")
+    public Result page(RoleQuery roleQuery) {
+        Page<Role> page = new Page<>(roleQuery.getPageNo(), roleQuery.getPageSize());
         LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(roleQuery.getRoleName())) {
             wrapper.like(Role::getRoleName, roleQuery.getRoleName());
@@ -307,11 +308,12 @@ public class RoleController extends BaseController {
         wrapper.orderByAsc(Role::getModifyTime);
         page = roleService.page(page,wrapper);
         PageResult<Role> pageBean = PageResult.init(page);
-        return ResultUtil.success().buildData("page", pageBean);
+
+        return ResultUtil.success(pageBean);
     }
 
-    @PostMapping("/power/list")
-    public Result powerList(@RequestBody Power power) {
+    @GetMapping("/power/list")
+    public Result powerList(Power power) {
         LambdaQueryWrapper<Power> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(power.getPowerName())) {
             wrapper.like(Power::getPowerName, power.getPowerName());
@@ -324,7 +326,32 @@ public class RoleController extends BaseController {
         }
         wrapper.orderByAsc(Power::getModifyTime);
         List<Power> list = powerService.list(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
+    }
+
+    /**
+     * 获取角色分页列表
+     * @param powerQuery
+     * @return
+     */
+    @GetMapping("/power/page")
+    public Result powerPage(PowerQuery powerQuery) {
+        Page<Power> page = new Page<>(powerQuery.getPageNo(), powerQuery.getPageSize());
+        LambdaQueryWrapper<Power> wrapper = Wrappers.lambdaQuery();
+        if (StringUtils.isNotBlank(powerQuery.getPowerName())) {
+            wrapper.like(Power::getPowerName, powerQuery.getPowerName());
+        }
+        if (StringUtils.isNotBlank(powerQuery.getPowerCode())) {
+            wrapper.like(Power::getPowerCode, powerQuery.getPowerCode());
+        }
+        if (StringUtils.isNotBlank(powerQuery.getPowerType())) {
+            wrapper.eq(Power::getPowerType, powerQuery.getPowerType());
+        }
+        wrapper.orderByAsc(Power::getParentCode);
+        page = powerService.page(page,wrapper);
+        PageResult<Power> pageBean = PageResult.init(page);
+
+        return ResultUtil.success(pageBean);
     }
 
     @Resource

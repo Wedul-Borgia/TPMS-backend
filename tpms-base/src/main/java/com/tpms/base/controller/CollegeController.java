@@ -122,7 +122,7 @@ public class CollegeController extends BaseController {
      */
     @PostMapping("/page")
     public Result page(@RequestBody CollegeQuery collegeQuery) {
-        Page<College> page = new Page<>(collegeQuery.getPageNum(), collegeQuery.getPageSize());
+        Page<College> page = new Page<>(collegeQuery.getPageNo(), collegeQuery.getPageSize());
 
         LambdaQueryWrapper<College> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(collegeQuery.getCollegeName())) {

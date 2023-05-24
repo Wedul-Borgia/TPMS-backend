@@ -112,7 +112,7 @@ public class MajorController extends BaseController {
 
     @PostMapping("/page")
     public Result page(@RequestBody MajorQuery majorQuery) {
-        Page<Major> page = new Page<>(majorQuery.getPageNum(), majorQuery.getPageSize());
+        Page<Major> page = new Page<>(majorQuery.getPageNo(), majorQuery.getPageSize());
 
         QueryWrapper<Major> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(majorQuery.getMajorName())) {

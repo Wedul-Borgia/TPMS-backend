@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @date 2023/5/22 - 15:09
  */
 @ComponentScan
-@FeignClient(name = "tpms-rbac",path = "/sys/log")
+@FeignClient(name = "tpms-sys",path = "/sys/log")
 public interface LogFeignService {
     /**
      * 记录日志

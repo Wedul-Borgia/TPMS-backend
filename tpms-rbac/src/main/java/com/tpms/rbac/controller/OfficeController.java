@@ -71,8 +71,8 @@ public class OfficeController extends BaseController {
         return ResultUtil.error("修改失败");
     }
 
-    @PostMapping("/list")
-    public Result list(@RequestBody Office office) {
+    @GetMapping("/list")
+    public Result list(Office office) {
         LambdaQueryWrapper<Office> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(office.getOfficeName())) {
             wrapper.like(Office::getOfficeName,office.getOfficeName());
@@ -93,9 +93,9 @@ public class OfficeController extends BaseController {
      * @param officeQuery
      * @return
      */
-    @PostMapping("/page")
-    public Result page(@RequestBody OfficeQuery officeQuery) {
-        Page<Office> page = new Page<>(officeQuery.getPageNum(), officeQuery.getPageSize());
+    @GetMapping("/page")
+    public Result page(OfficeQuery officeQuery) {
+        Page<Office> page = new Page<>(officeQuery.getPageNo(), officeQuery.getPageSize());
         LambdaQueryWrapper<Office> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(officeQuery.getOfficeName())) {
             wrapper.like(Office::getOfficeName, officeQuery.getOfficeName());
@@ -109,7 +109,7 @@ public class OfficeController extends BaseController {
         wrapper.orderByAsc(Office::getOfficeCode);
         page = officeService.page(page,wrapper);
         PageResult<Office> pageBean = PageResult.init(page);
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
     /**

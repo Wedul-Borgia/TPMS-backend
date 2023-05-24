@@ -41,10 +41,10 @@ public class ProfileResult implements Serializable {
             String code = power.getPowerCode();
             String parent = power.getParentCode();
             if("1".equals(power.getPowerType())) {
-                menus.add(code);
                 if(StringUtils.isNotBlank(parent)&&!menus.contains(parent)){
                     menus.add(parent);
                 }
+                menus.add(code);
             }else if("2".equals(power.getPowerType())) {
                 points.add(code);
             }else {
@@ -71,7 +71,11 @@ public class ProfileResult implements Serializable {
             Set<Power> powers = role.getPowers();
             for (Power power : powers) {
                 String code = power.getPowerCode();
+                String parent = power.getParentCode();
                 if("1".equals(power.getPowerType())) {
+                    if(StringUtils.isNotBlank(parent)&&!menus.contains(parent)){
+                        menus.add(parent);
+                    }
                     menus.add(code);
                 }else if("2".equals(power.getPowerType())) {
                     points.add(code);

@@ -44,9 +44,9 @@ public class OperateLogController {
      * @param operateLogQuery
      * @return
      */
-    @PostMapping("/page")
-    public Result page(@RequestBody OperateLogQuery operateLogQuery) {
-        Page<OperateLog> page = new Page<>(operateLogQuery.getPageNum(), operateLogQuery.getPageSize());
+    @GetMapping("/page")
+    public Result page(OperateLogQuery operateLogQuery) {
+        Page<OperateLog> page = new Page<>(operateLogQuery.getPageNo(), operateLogQuery.getPageSize());
 
         QueryWrapper<OperateLog> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(operateLogQuery.getLogModule())) {
@@ -59,12 +59,12 @@ public class OperateLogController {
             wrapper.like("log_user", operateLogQuery.getLogUser());
         }
         if (StringUtils.isNotBlank(operateLogQuery.getLogTime())) {
-            wrapper.likeRight("log_time",String.valueOf(operateLogQuery.getLogTime()));
+            wrapper.likeRight("log_time", String.valueOf(operateLogQuery.getLogTime()));
         }
         wrapper.orderByAsc("log_time");
         page = operateLogService.page(page, wrapper);
         PageResult<OperateLog> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 }

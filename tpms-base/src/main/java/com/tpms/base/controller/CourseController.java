@@ -44,17 +44,17 @@ public class CourseController extends BaseController {
     @PostMapping("/")
     public Result add(@RequestBody Course course) {
 
-        if(courseService.checkDuplicate(course)){
+        if (courseService.checkDuplicate(course)) {
             course.setDelFlag("0");
             course.setIsStop("0");
             if (courseService.save(course)) {
-                String logMsg = "添加课程，课程ID："+course.getCourseId();
+                String logMsg = "添加课程，课程ID：" + course.getCourseId();
                 logOperate("课程管理", "ADD", logMsg);
                 return ResultUtil.success("添加成功");
             } else {
                 return ResultUtil.error("添加失败");
             }
-        }else{
+        } else {
             return ResultUtil.error("课程名称或编码已存在");
         }
 
@@ -66,9 +66,9 @@ public class CourseController extends BaseController {
     @PutMapping(value = "/")
     public Result update(@RequestBody Course course) {
 
-        if (courseService.checkDuplicate(course,course.getCourseId())) {
+        if (courseService.checkDuplicate(course, course.getCourseId())) {
             if (courseService.updateById(course)) {
-                String logMsg = "修改课程，课程ID："+course.getCourseId();
+                String logMsg = "修改课程，课程ID：" + course.getCourseId();
                 logOperate("课程管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
             } else {
@@ -82,9 +82,9 @@ public class CourseController extends BaseController {
      * 根据id删除
      */
     @DeleteMapping("/{id}")
-    public Result delById(@PathVariable("id") String courseId){
-        if(courseService.removeById(courseId)){
-            String logMsg = "删除课程，课程ID："+courseId;
+    public Result delById(@PathVariable("id") String courseId) {
+        if (courseService.removeById(courseId)) {
+            String logMsg = "删除课程，课程ID：" + courseId;
             logOperate("课程管理", "DELETE", logMsg);
             return ResultUtil.success("删除成功");
         }
@@ -124,20 +124,20 @@ public class CourseController extends BaseController {
 
     @PostMapping("/page")
     public Result page(@RequestBody CourseQuery courseQuery) {
-        Page<Course> page = new Page<>(courseQuery.getPageNum(), courseQuery.getPageSize());
+        Page<Course> page = new Page<>(courseQuery.getPageNo(), courseQuery.getPageSize());
 
         LambdaQueryWrapper<Course> wrapper = Wrappers.lambdaQuery();
-        if(StringUtils.isNotBlank(courseQuery.getCourseName())){
-            wrapper.like(Course::getCourseName,courseQuery.getCourseName());
+        if (StringUtils.isNotBlank(courseQuery.getCourseName())) {
+            wrapper.like(Course::getCourseName, courseQuery.getCourseName());
         }
-        if(StringUtils.isNotBlank(courseQuery.getCourseCode())){
-            wrapper.like(Course::getCourseCode,courseQuery.getCourseCode());
+        if (StringUtils.isNotBlank(courseQuery.getCourseCode())) {
+            wrapper.like(Course::getCourseCode, courseQuery.getCourseCode());
         }
-        if(StringUtils.isNotBlank(courseQuery.getIsStop())){
-            wrapper.eq(Course::getIsStop,courseQuery.getIsStop());
+        if (StringUtils.isNotBlank(courseQuery.getIsStop())) {
+            wrapper.eq(Course::getIsStop, courseQuery.getIsStop());
         }
-        if(StringUtils.isNotBlank(courseQuery.getCourseType())){
-            wrapper.eq(Course::getCourseType,courseQuery.getCourseType());
+        if (StringUtils.isNotBlank(courseQuery.getCourseType())) {
+            wrapper.eq(Course::getCourseType, courseQuery.getCourseType());
         }
         wrapper.orderByAsc(Course::getCourseCode);
         courseService.page(page, wrapper);
@@ -149,6 +149,7 @@ public class CourseController extends BaseController {
 
     /**
      * 列表查询（下拉之类的）
+     *
      * @param courseQuery
      * @return
      */
@@ -164,15 +165,14 @@ public class CourseController extends BaseController {
         wrapper.eq(Course::getIsStop, "0")
                 .orderByAsc(Course::getCourseCode);
         List<Course> list = courseService.list(wrapper);
-        return ResultUtil.success().buildData("rows",list);
+        return ResultUtil.success().buildData("rows", list);
     }
 
     /**
      * 导出文件
-     *
      */
-    @PostMapping("/download")
-    public void download(@RequestBody CourseQuery courseQuery, HttpServletResponse response) throws IOException {
+    @GetMapping("/download")
+    public void download(CourseQuery courseQuery, HttpServletResponse response) throws IOException {
         LambdaQueryWrapper<Course> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(courseQuery.getCourseName())) {
             wrapper.like(Course::getCourseName, courseQuery.getCourseName());
@@ -209,20 +209,22 @@ public class CourseController extends BaseController {
      * 导入文件
      */
     @PostMapping("/upload")
-    public Result upload(MultipartFile file){
+    public Result upload(MultipartFile file) {
+        ExcelCourseDataListener listener = new ExcelCourseDataListener(courseService);
         try {
-            EasyExcel.read(file.getInputStream(), ExcelCourseData.class, new ExcelCourseDataListener(courseService)).sheet().doRead();
+            EasyExcel.read(file.getInputStream(), ExcelCourseData.class, listener).sheet().doRead();
             String logMsg = "批量导入课程";
             logOperate("课程管理", "ADD", logMsg);
-            return ResultUtil.success("导入成功");
-        }catch (Exception e){
-            return ResultUtil.error("导入失败");
+            return ResultUtil.success(listener.getMsg());
+        } catch (Exception e) {
+            String msg = listener.getMsg();
+            return ResultUtil.error(msg == null ? "导入失败" : msg);
         }
     }
 
-    List<ExcelCourseData> toExcelData(List<Course> list){
+    List<ExcelCourseData> toExcelData(List<Course> list) {
         List<ExcelCourseData> excel = new ArrayList<>();
-        for(Course course : list){
+        for (Course course : list) {
             ExcelCourseData excelCourseData = new ExcelCourseData();
             excelCourseData.setCourseName(course.getCourseName());
             excelCourseData.setCourseCode(course.getCourseCode());
@@ -235,14 +237,15 @@ public class CourseController extends BaseController {
 
     @Resource
     private LogFeignService logFeignService;
-    private void logOperate(String logModule,String logEvent,String logMsg){
+
+    private void logOperate(String logModule, String logEvent, String logMsg) {
         logFeignService.log(OperateLog.builder()
                 .officeId(this.officeId)
                 .officeName(this.officeName)
                 .logUser(this.userName)
                 .logModule(logModule)
                 .logEvent(logEvent)
-                .logMessage(this.userName+logMsg)
+                .logMessage(this.userName + logMsg)
                 .build());
     }
 }

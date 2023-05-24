@@ -110,9 +110,9 @@ public class UserController extends BaseController {
         return ResultUtil.success(user);
     }
 
-    @PostMapping("/page")
-    public Result page(@RequestBody UserQuery userQuery) {
-        Page<User> page = new Page<>(userQuery.getPageNum(), userQuery.getPageSize());
+    @GetMapping("/page")
+    public Result page(UserQuery userQuery) {
+        Page<User> page = new Page<>(userQuery.getPageNo(), userQuery.getPageSize());
 
         LambdaQueryWrapper<User> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(userQuery.getUsername())) {
@@ -129,11 +129,11 @@ public class UserController extends BaseController {
 
         PageResult<User> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
-    @PostMapping("/list")
-    public Result list(@RequestBody User user) {
+    @GetMapping("/list")
+    public Result list(User user) {
         LambdaQueryWrapper<User> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(user.getUsername())) {
             wrapper.like(User::getUsername, user.getUsername());
