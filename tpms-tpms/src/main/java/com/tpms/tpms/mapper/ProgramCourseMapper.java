@@ -17,6 +17,6 @@ import java.util.List;
 public interface ProgramCourseMapper extends BaseMapper<ProgramCourse> {
     @Select("select bc.* from tp_program_course tpc " +
             "left join base_course bc on tpc .course_id = bc.course_id " +
-            "where tpc.program_id = #{programId}")
+            "where tpc.program_id = #{programId} and bc.del_flag = '0' and bc.is_stop = '0'")
     List<Course> selectCourses(String programId);
 }

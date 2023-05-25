@@ -69,6 +69,7 @@ public class ExcelCourseDataListener extends AnalysisEventListener<ExcelCourseDa
             String courseType = Constant.COURSE_TYPE.get(excelCourseData.getCourseType());
             course.setCourseType(courseType);
             course.setCredit(excelCourseData.getCredit());
+            course.setXueshi(excelCourseData.getXueshi());
             courses.add(course);
             existName.add(courseName);
             existCode.add(courseCode);

@@ -17,6 +17,6 @@ import java.util.List;
 public interface PlanCourseMapper extends BaseMapper<PlanCourse> {
     @Select("select bc.* from tp_plan_course tpc " +
             "left join base_course bc on tpc .course_id = bc.course_id " +
-            "where tpc.plan_id = #{planId}")
+            "where tpc.plan_id = #{planId} and bc.del_flag = '0' and bc.is_stop = '0'")
     List<Course> getCourses(String planId);
 }

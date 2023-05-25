@@ -41,6 +41,11 @@ public class Course {
     private Float credit;
 
     /**
+     * 学时
+     */
+    private Float xueshi;
+
+    /**
      * 删除标志
      */
     @TableLogic(value = "0",delval = "1")

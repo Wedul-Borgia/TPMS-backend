@@ -230,6 +230,7 @@ public class CourseController extends BaseController {
             excelCourseData.setCourseCode(course.getCourseCode());
             excelCourseData.setCourseType(Constant.COURSE_TYPE_CN.get(course.getCourseType()));
             excelCourseData.setCredit(course.getCredit());
+            excelCourseData.setXueshi(course.getXueshi());
             excel.add(excelCourseData);
         }
         return excel;

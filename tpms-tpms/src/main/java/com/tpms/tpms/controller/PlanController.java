@@ -213,9 +213,9 @@ public class PlanController extends BaseController {
             Map<String, Object> data = new HashMap<>();
 
             //表格宽度
-            int[] width = {20, 40, 20, 20};
+            int[] width = {20, 40, 10, 10, 20};
             //表头和空行
-            RowRenderData header = Rows.create("课程编号", "课程名称", "学分", "执行学期");
+            RowRenderData header = Rows.create("课程编号", "课程名称", "学分", "学时", "执行学期");
             RowRenderData none = Rows.create("无", null, null, null, null);
             //合并单元格
             MergeCellRule rule = MergeCellRule.builder()
@@ -237,7 +237,7 @@ public class PlanController extends BaseController {
                 for (Course course : courses) {
                     String courseType = course.getCourseType();
                     RowRenderData row = Rows.create(course.getCourseCode(), course.getCourseName(),
-                            String.valueOf(course.getCredit()), null);
+                            String.valueOf(course.getCredit()),String.valueOf(course.getXueshi()), null);
                     if ("0".equals(courseType)) {
                         course0.addRow(row);
                     } else if ("1".equals(courseType)) {

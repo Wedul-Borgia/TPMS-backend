@@ -119,5 +119,15 @@ public class Plan implements Serializable {
 
     @TableField(exist = false)
     private List<Course> courses;
+
+    /**
+     * 状态 0 未提交 1 已提交 2 已通过 3 未通过
+     */
+    private String status;
+
+    /**
+     * 原因
+     */
+    private String reason;
 }
 
