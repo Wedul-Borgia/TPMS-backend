@@ -29,6 +29,11 @@ public class PlanQuery extends PageQuery {
     private String majorId;
 
     /**
+     * 状态 0 未提交 1 已提交 2 已通过 3 未通过
+     */
+    private String status;
+
+    /**
      * 年份
      */
     private String theYear;

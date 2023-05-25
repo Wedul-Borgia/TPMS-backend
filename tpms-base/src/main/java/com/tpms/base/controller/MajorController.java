@@ -110,8 +110,8 @@ public class MajorController extends BaseController {
         return ResultUtil.success(major);
     }
 
-    @PostMapping("/page")
-    public Result page(@RequestBody MajorQuery majorQuery) {
+    @GetMapping("/page")
+    public Result page(MajorQuery majorQuery) {
         Page<Major> page = new Page<>(majorQuery.getPageNo(), majorQuery.getPageSize());
 
         QueryWrapper<Major> wrapper = new QueryWrapper<>();
@@ -132,11 +132,11 @@ public class MajorController extends BaseController {
         page = majorService.getPage(page, wrapper);
         PageResult<Major> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
-    @PostMapping("/list")
-    public Result list(@RequestBody MajorQuery majorQuery) {
+    @GetMapping("/list")
+    public Result list(MajorQuery majorQuery) {
         QueryWrapper<Major> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(majorQuery.getMajorName())) {
             wrapper.like("bm.major_name", majorQuery.getMajorName());
@@ -148,7 +148,7 @@ public class MajorController extends BaseController {
         wrapper.eq("bm.del_flag", "0");
         wrapper.orderByAsc("bm.major_code");
         List<Major> list = majorService.getList(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     @Resource

@@ -130,7 +130,7 @@ public class ProgramController extends BaseController {
         return ResultUtil.error("操作失败");
     }
 
-    @PostMapping("/page")
+    @GetMapping("/page")
     public Result page(@RequestBody ProgramQuery programQuery) {
         Page<Program> page = new Page<>(programQuery.getPageNo(), programQuery.getPageSize());
 
@@ -150,10 +150,10 @@ public class ProgramController extends BaseController {
 
         PageResult<Program> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     public Result list(@RequestBody Program program) {
         QueryWrapper<Program> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(program.getProgramName())) {
@@ -166,7 +166,7 @@ public class ProgramController extends BaseController {
         wrapper.eq("tp.del_flag", "0");
         wrapper.orderByDesc("tp.modify_time");
         List<Program> list = programService.getList(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     /**

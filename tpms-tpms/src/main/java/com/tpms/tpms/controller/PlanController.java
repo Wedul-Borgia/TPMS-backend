@@ -148,13 +148,48 @@ public class PlanController extends BaseController {
         if (StringUtils.isNotBlank(planQuery.getProgramId())) {
             wrapper.eq("tp.program_id", planQuery.getProgramId());
         }
+        if (StringUtils.isNotBlank(planQuery.getStatus())) {
+            wrapper.eq("tp.status", planQuery.getStatus());
+        }
         wrapper.eq("tp.del_flag", "0");
         wrapper.orderByDesc("tp.modify_time");
         page = planService.getPage(page, wrapper);
 
         PageResult<Plan> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
+    }
+
+    @PostMapping("/approve/page")
+    public Result approvePage(@RequestBody PlanQuery planQuery) {
+        Page<Plan> page = new Page<>(planQuery.getPageNo(), planQuery.getPageSize());
+
+        QueryWrapper<Plan> wrapper = new QueryWrapper<>();
+
+        if (StringUtils.isNotBlank(planQuery.getTheYear())) {
+            wrapper.eq("tp.the_year", planQuery.getTheYear());
+        }
+        if (StringUtils.isNotBlank(planQuery.getMajorId())) {
+            wrapper.eq("tp.major_id", planQuery.getMajorId());
+        }
+        if (StringUtils.isNotBlank(planQuery.getPlanName())) {
+            wrapper.like("tp.plan_name", planQuery.getPlanName());
+        }
+        if (StringUtils.isNotBlank(planQuery.getProgramId())) {
+            wrapper.eq("tp.program_id", planQuery.getProgramId());
+        }
+        if (StringUtils.isNotBlank(planQuery.getStatus())) {
+            wrapper.eq("tp.status", planQuery.getStatus());
+        }else {
+            wrapper.ge("tp.status", "1");
+        }
+        wrapper.eq("tp.del_flag", "0");
+        wrapper.orderByDesc("tp.modify_time");
+        page = planService.getPage(page, wrapper);
+
+        PageResult<Plan> pageBean = PageResult.init(page);
+
+        return ResultUtil.success(pageBean);
     }
 
     /**
@@ -274,7 +309,7 @@ public class PlanController extends BaseController {
             data.put("plan", plan);
             data.put("total", plan.getBxCredit() + plan.getXxCredit());
 
-            XWPFTemplate template = XWPFTemplate.compile("C:\\Users\\wedul\\Desktop\\plan.docx").render(data);
+            XWPFTemplate template = XWPFTemplate.compile("C:\\TPMS\\tpms\\plan.docx").render(data);
             template.write(bos);
             bos.flush();
             out.flush();

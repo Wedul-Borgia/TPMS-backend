@@ -39,7 +39,7 @@ public class PageResult<T> implements Serializable {
     /**
      * 一共有多少页
      */
-//    private Long pages;
+    private Long pages;
 
     /**
      * 每一页所显示的数据
@@ -62,7 +62,7 @@ public class PageResult<T> implements Serializable {
         PageResult<T> pageBean = new PageResult<>();
         pageBean.setPageNo(page.getCurrent());
         pageBean.setPageSize(page.getSize());
-//        pageBean.setPages(page.getPages());
+        pageBean.setPages(page.getPages());
         pageBean.setTotal(page.getTotal());
         pageBean.setPageData(page.getRecords());
         return pageBean;

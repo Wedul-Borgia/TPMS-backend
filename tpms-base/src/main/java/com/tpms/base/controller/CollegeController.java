@@ -120,8 +120,8 @@ public class CollegeController extends BaseController {
      * @param collegeQuery
      * @return
      */
-    @PostMapping("/page")
-    public Result page(@RequestBody CollegeQuery collegeQuery) {
+    @GetMapping("/page")
+    public Result page(CollegeQuery collegeQuery) {
         Page<College> page = new Page<>(collegeQuery.getPageNo(), collegeQuery.getPageSize());
 
         LambdaQueryWrapper<College> wrapper = Wrappers.lambdaQuery();
@@ -139,7 +139,7 @@ public class CollegeController extends BaseController {
 
         PageResult<College> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
     /**
@@ -148,8 +148,8 @@ public class CollegeController extends BaseController {
      * @param collegeQuery
      * @return
      */
-    @PostMapping("/list")
-    public Result list(@RequestBody CollegeQuery collegeQuery) {
+    @GetMapping("/list")
+    public Result list(CollegeQuery collegeQuery) {
         LambdaQueryWrapper<College> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(collegeQuery.getCollegeName())) {
             wrapper.like(College::getCollegeName, collegeQuery.getCollegeName());
@@ -160,7 +160,7 @@ public class CollegeController extends BaseController {
         wrapper.eq(College::getIsStop, "0")
                 .orderByAsc(College::getCollegeCode);
         List<College> list = collegeService.list(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     @Resource

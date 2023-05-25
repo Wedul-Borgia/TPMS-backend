@@ -122,7 +122,7 @@ public class CourseController extends BaseController {
         return ResultUtil.error("操作失败");
     }
 
-    @PostMapping("/page")
+    @GetMapping("/page")
     public Result page(@RequestBody CourseQuery courseQuery) {
         Page<Course> page = new Page<>(courseQuery.getPageNo(), courseQuery.getPageSize());
 
@@ -144,7 +144,7 @@ public class CourseController extends BaseController {
 
         PageResult<Course> pageBean = PageResult.init(page);
 
-        return ResultUtil.success().buildData("page", pageBean);
+        return ResultUtil.success(pageBean);
     }
 
     /**
@@ -153,8 +153,8 @@ public class CourseController extends BaseController {
      * @param courseQuery
      * @return
      */
-    @PostMapping("/list")
-    public Result list(@RequestBody CourseQuery courseQuery) {
+    @GetMapping("/list")
+    public Result list(CourseQuery courseQuery) {
         LambdaQueryWrapper<Course> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(courseQuery.getCourseName())) {
             wrapper.like(Course::getCourseName, courseQuery.getCourseName());
@@ -165,7 +165,7 @@ public class CourseController extends BaseController {
         wrapper.eq(Course::getIsStop, "0")
                 .orderByAsc(Course::getCourseCode);
         List<Course> list = courseService.list(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     /**
