@@ -39,6 +39,6 @@ spring:
         - id: tpms-tpms
           uri: lb://tpms-tpms
           predicates:
-            - Path=/tp/**
+            - Path=/tpms/**
 #         filters:
 #           - StripPrefix=1

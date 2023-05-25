@@ -38,6 +38,6 @@ public class ExcelCourseData {
     private Float credit;
 
     @ColumnWidth(20)
-    @ExcelProperty(value = "学时",index = 3)
+    @ExcelProperty(value = "学时",index = 4)
     private Float xueshi;
 }
