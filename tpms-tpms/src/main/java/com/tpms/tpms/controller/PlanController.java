@@ -219,6 +219,14 @@ public class PlanController extends BaseController {
         return ResultUtil.error("删除失败");
     }
 
+    @PutMapping("/approve/")
+    public Result updateStatus(@RequestBody Plan plan) {
+        if(planService.updateById(plan)){
+            return ResultUtil.success("操作成功");
+        }
+        return ResultUtil.error("操作失败");
+    }
+
     /**
      * 导出文件
      */
