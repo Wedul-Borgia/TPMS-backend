@@ -124,6 +124,10 @@ public class UserController extends BaseController {
         if (StringUtils.isNotBlank(userQuery.getUserSex())) {
             wrapper.eq(User::getUserSex, userQuery.getUserSex());
         }
+        if (StringUtils.isNotBlank(userQuery.getUserStatus())) {
+            wrapper.eq(User::getUserStatus, userQuery.getUserStatus());
+        }
+        wrapper.eq(User::getLevel, "0");
         wrapper.orderByAsc(User::getUsername);
         userService.page(page, wrapper);
 
@@ -224,7 +228,6 @@ public class UserController extends BaseController {
         ProfileResult result = (ProfileResult) principals.getPrimaryPrincipal();
         return ResultUtil.success(result);
     }
-
 
 
     /**

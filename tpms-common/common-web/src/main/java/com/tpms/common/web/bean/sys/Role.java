@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -80,5 +81,5 @@ public class Role {
     private Set<Power> powers = new HashSet<Power>(0);
 
     @TableField(exist = false)
-    private String powerIds;
+    private List<String> powerIds;
 }

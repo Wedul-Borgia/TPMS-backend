@@ -123,7 +123,7 @@ public class CourseController extends BaseController {
     }
 
     @GetMapping("/page")
-    public Result page(@RequestBody CourseQuery courseQuery) {
+    public Result page(CourseQuery courseQuery) {
         Page<Course> page = new Page<>(courseQuery.getPageNo(), courseQuery.getPageSize());
 
         LambdaQueryWrapper<Course> wrapper = Wrappers.lambdaQuery();

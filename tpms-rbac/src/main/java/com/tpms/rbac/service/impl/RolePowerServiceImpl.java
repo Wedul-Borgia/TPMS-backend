@@ -8,6 +8,7 @@ import com.tpms.rbac.service.RolePowerService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author wld
@@ -31,5 +32,10 @@ public class RolePowerServiceImpl extends ServiceImpl<RolePowerMapper, RolePower
         QueryWrapper<RolePower> wrapper = new QueryWrapper<>();
         wrapper.eq("power_id", powerId);
         rolePowerMapper.delete(wrapper);
+    }
+
+    @Override
+    public List<String> getByRoleId(String roleId) {
+        return rolePowerMapper.getByRoleId(roleId);
     }
 }
