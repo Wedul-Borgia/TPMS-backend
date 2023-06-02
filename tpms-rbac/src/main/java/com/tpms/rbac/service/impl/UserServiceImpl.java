@@ -22,11 +22,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private UserMapper userMapper;
 
     @Override
-    public boolean generateAdmin(String office_id) {
+    public boolean generateAdmin(String office_id,String officeName) {
         String password = new Md5Hash(office_id, "ADMIN", 3).toString();
         User admin = User.builder().username("ADMIN")
                 .officeId(office_id).trueName("初始管理员")
                 .password(password).userStatus("1")
+                .officeName(officeName)
                 .level("1").delFlag("0").build();
         userMapper.insert(admin);
         return true;

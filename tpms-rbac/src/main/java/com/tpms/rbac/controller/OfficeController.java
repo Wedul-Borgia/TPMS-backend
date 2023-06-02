@@ -42,11 +42,12 @@ public class OfficeController extends BaseController {
      */
     @PostMapping("/")
     public Result add(@RequestBody Office office) {
+        office.setOfficeId(office.getOfficeCode());
         if(officeService.getById(office.getOfficeId())!=null){
             return ResultUtil.error("机构编码已存在");
         }
         if (officeService.save(office)) {
-            userService.generateAdmin(office.getOfficeId());
+            userService.generateAdmin(office.getOfficeId(),office.getOfficeName());
             String logMsg = "添加机构，机构ID："+office.getOfficeId();
             logOperate("机构管理","ADD",logMsg);
             return ResultUtil.success();

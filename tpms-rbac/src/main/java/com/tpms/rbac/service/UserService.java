@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  */
 
 public interface UserService extends IService<User> {
-    boolean generateAdmin(String office_id);
+    boolean generateAdmin(String office_id,String officeName);
 
     User getByUsername(String username,String office_id);
 

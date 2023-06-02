@@ -8,6 +8,7 @@ import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
 import com.tpms.common.web.bean.base.Course;
+import com.tpms.common.web.bean.query.Option;
 import com.tpms.common.web.bean.query.ProgramQuery;
 import com.tpms.common.web.bean.sys.OperateLog;
 import com.tpms.common.web.bean.tp.Program;
@@ -45,13 +46,13 @@ public class ProgramController extends BaseController {
         if (programService.checkDuplicate(program)) {
             program.setDelFlag("0");
             if (programService.save(program)) {
-                String courseIds = program.getCourseIds();
+                List<String> courseIds = program.getCourseIds();
                 //课程不为空，培养方案添加课程
-                if (StringUtils.isNotBlank(courseIds)) {
+                if (courseIds != null && courseIds.size() > 0) {
                     String programId = program.getProgramId();
 
                     List<ProgramCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")) {
+                    for (String courseId : courseIds) {
                         ProgramCourse tmp = ProgramCourse.builder()
                                 .programId(programId).courseId(courseId).build();
                         list.add(tmp);
@@ -75,27 +76,25 @@ public class ProgramController extends BaseController {
     public Result updateProgram(@RequestBody Program program) {
         if (programService.checkDuplicate(program, program.getProgramId())) {
             if (programService.updateById(program)) {
-                String courseIds = program.getCourseIds();
+                List<String> courseIds = program.getCourseIds();
                 String programId = program.getProgramId();
-
-                //courseIds如果为pass，跳过修改培养方案课程
-                if (!"pass".equals(courseIds)) {
+                if("true".equals(program.getChangeCourse())){
                     LambdaQueryWrapper<ProgramCourse> wrapper = Wrappers.lambdaQuery();
                     wrapper.eq(ProgramCourse::getProgramId, programId);
 
                     //删除原有课程
                     programCourseService.remove(wrapper);
-                }
 
-                //courseIds不为空，进行添加课程
-                if (StringUtils.isNotBlank(courseIds)) {
-                    List<ProgramCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")) {
-                        ProgramCourse tmp = ProgramCourse.builder()
-                                .programId(programId).courseId(courseId).build();
-                        list.add(tmp);
+                    //courseIds不为空，进行添加课程
+                    if (courseIds != null && courseIds.size() > 0) {
+                        List<ProgramCourse> list = new ArrayList<>();
+                        for (String courseId : courseIds) {
+                            ProgramCourse tmp = ProgramCourse.builder()
+                                    .programId(programId).courseId(courseId).build();
+                            list.add(tmp);
+                        }
+                        programCourseService.saveBatch(list);
                     }
-                    programCourseService.saveBatch(list);
                 }
 
                 String logMsg = "修改培养方案，培养方案ID：" + programId;
@@ -122,16 +121,16 @@ public class ProgramController extends BaseController {
 
             String action = "1".equals(isStop) ? "停用" : "启用";
             if (programService.updateById(update)) {
-                String logMsg = action+"培养方案，培养方案ID：" + programId;
+                String logMsg = action + "培养方案，培养方案ID：" + programId;
                 logOperate("培养方案管理", "UPDATE", logMsg);
-                return ResultUtil.success(action+"成功");
+                return ResultUtil.success(action + "成功");
             }
         }
         return ResultUtil.error("操作失败");
     }
 
     @GetMapping("/page")
-    public Result page(@RequestBody ProgramQuery programQuery) {
+    public Result page(ProgramQuery programQuery) {
         Page<Program> page = new Page<>(programQuery.getPageNo(), programQuery.getPageSize());
 
         QueryWrapper<Program> wrapper = new QueryWrapper<>();
@@ -154,7 +153,7 @@ public class ProgramController extends BaseController {
     }
 
     @GetMapping("/list")
-    public Result list(@RequestBody Program program) {
+    public Result list(Program program) {
         QueryWrapper<Program> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(program.getProgramName())) {
             wrapper.like("tp.program_name", program.getProgramName());
@@ -166,6 +165,22 @@ public class ProgramController extends BaseController {
         wrapper.eq("tp.del_flag", "0");
         wrapper.orderByDesc("tp.modify_time");
         List<Program> list = programService.getList(wrapper);
+        return ResultUtil.success(list);
+    }
+
+    @GetMapping("/option")
+    public Result option(Program program) {
+        QueryWrapper<Program> wrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(program.getProgramName())) {
+            wrapper.like("tp.program_name", program.getProgramName());
+        }
+        if (StringUtils.isNotBlank(program.getMajorId())) {
+            wrapper.eq("tp.major_id", program.getMajorId());
+        }
+        wrapper.eq("tp.is_stop", "0");
+        wrapper.eq("tp.del_flag", "0");
+        wrapper.orderByDesc("tp.modify_time");
+        List<Option> list = programService.getOption(wrapper);
         return ResultUtil.success(list);
     }
 
@@ -199,14 +214,14 @@ public class ProgramController extends BaseController {
     @Resource
     public LogFeignService logFeignService;
 
-    private void logOperate(String logModule,String logEvent,String logMsg){
+    private void logOperate(String logModule, String logEvent, String logMsg) {
         logFeignService.log(OperateLog.builder()
                 .officeId(this.officeId)
                 .officeName(this.officeName)
                 .logUser(this.userName)
                 .logModule(logModule)
                 .logEvent(logEvent)
-                .logMessage(this.userName+logMsg)
+                .logMessage(this.userName + logMsg)
                 .build());
     }
 }

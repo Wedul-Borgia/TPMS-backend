@@ -139,7 +139,15 @@ public class CourseController extends BaseController {
         if (StringUtils.isNotBlank(courseQuery.getCourseType())) {
             wrapper.eq(Course::getCourseType, courseQuery.getCourseType());
         }
-        wrapper.orderByAsc(Course::getCourseCode);
+        if (StringUtils.isNotBlank(courseQuery.getOrderBy())) {
+            if("createTime".equals(courseQuery.getOrderBy())){
+                wrapper.orderByDesc(Course::getCreateTime);
+            }else if("courseName".equals(courseQuery.getOrderBy())){
+                wrapper.orderByDesc(Course::getCourseName);
+            }
+        }else {
+            wrapper.orderByAsc(Course::getCourseCode);
+        }
         courseService.page(page, wrapper);
 
         PageResult<Course> pageBean = PageResult.init(page);
@@ -199,7 +207,7 @@ public class CourseController extends BaseController {
             response.setContentType("application/json");
             response.setCharacterEncoding("utf-8");
             Map<String, String> map = new HashMap<>();
-            map.put("status", "failure");
+            map.put("status", "1000");
             map.put("message", "下载文件失败" + e.getMessage());
             response.getWriter().println(JSONUtils.toJSONString(map));
         }

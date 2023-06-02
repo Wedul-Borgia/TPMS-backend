@@ -5,6 +5,7 @@ import com.tpms.common.web.bean.base.Course;
 import com.tpms.common.web.bean.tp.PlanCourse;
 import com.tpms.tpms.mapper.PlanCourseMapper;
 import com.tpms.tpms.service.PlanCourseService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

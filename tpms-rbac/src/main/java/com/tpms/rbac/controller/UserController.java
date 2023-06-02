@@ -151,9 +151,10 @@ public class UserController extends BaseController {
         if (StringUtils.isNotBlank(user.getUserStatus())) {
             wrapper.eq(User::getUserStatus, user.getUserStatus());
         }
+        wrapper.eq(User::getLevel, "0");
         wrapper.orderByAsc(User::getUsername);
         List<User> list = userService.list(wrapper);
-        return ResultUtil.success().buildData("rows", list);
+        return ResultUtil.success(list);
     }
 
     /**
@@ -277,9 +278,9 @@ public class UserController extends BaseController {
 
     @PostMapping("/password/reset")
     public Result resetPwd(@RequestBody Map<String, Object> map) {
-        String username = (String) map.get("username");
         String userId = (String) map.get("userId");
-        String password = new Md5Hash("123456", username, 3).toString();
+        User user = userService.getById(userId);
+        String password = new Md5Hash("123456", user.getUsername(), 3).toString();
         User update = User.builder().password(password)
                 .userId(userId).build();
         if (userService.updateById(update)) {

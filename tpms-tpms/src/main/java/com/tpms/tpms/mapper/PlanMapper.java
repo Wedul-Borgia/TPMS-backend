@@ -18,7 +18,7 @@ import java.util.List;
 @Mapper
 public interface PlanMapper extends BaseMapper<Plan> {
     @Select("select tp.*, tpp.program_name, bm.major_name from tp_plan tp " +
-            "left join tp_program tpp on tp.program_id = tpp.program_id" +
+            "left join tp_program tpp on tp.program_id = tpp.program_id " +
             "left join base_major bm on tp.major_id = bm.major_id ${ew.customSqlSegment}")
     Page<Plan> getPage(Page page, @Param("ew") Wrapper<Plan> wrapper);
 
@@ -29,7 +29,7 @@ public interface PlanMapper extends BaseMapper<Plan> {
     Plan getByPlanId(String pageId);
 
     @Select("select tp.*, tpp.program_name, bm.major_name from tp_plan tp " +
-            "left join tp_program tpp on tp.program_id = tpp.program_id" +
+            "left join tp_program tpp on tp.program_id = tpp.program_id " +
             "left join base_major bm on tp.major_id = bm.major_id ${ew.customSqlSegment}")
     List<Plan> getList(@Param("ew") Wrapper<Plan> wrapper);
 }

@@ -65,15 +65,16 @@ public class ShiroConfiguration {
         //anon -- 匿名访问
         filterMap.put("/user/login", "anon");
         filterMap.put("/office/list", "anon");
+        filterMap.put("/power/list", "anon");
         filterMap.put("/autherror", "anon");
         filterMap.put("/log/log", "anon");
 
         //perms -- 具有某中权限 (使用注解配置授权)
         filterMap.put("/user/page","perms[API-USER]");
         filterMap.put("/user/list","perms[API-USER]");
-        filterMap.put("/role/power/**","perms[API-POWER]");
+//        filterMap.put("/role/power/**","perms[API-POWER]");
 //        filterMap.put("/role/**","perms[API-ROLE]");
-        filterMap.put("/office/**","perms[API-OFFICE]");
+//        filterMap.put("/office/**","perms[API-OFFICE]");
         filterMap.put("/user/test","perms[API-TEST]");
 //        filterMap.put("/user/test","roles[API-TEST]");
         //authc -- 认证之后访问（登录）

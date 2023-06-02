@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName(value = "sys_operate_log")
-public class OperateLog {
+public class OperateLog implements Serializable {
     /**
      * 日志ID
      */

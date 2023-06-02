@@ -28,6 +28,8 @@ public class CourseQuery extends PageQuery {
      */
     private String courseType;
 
+    private String orderBy;
+
     /**
      * 是否停用 0 启用 1停用
      */

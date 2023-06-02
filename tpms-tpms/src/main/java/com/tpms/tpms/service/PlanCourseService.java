@@ -12,4 +12,9 @@ import java.util.List;
  */
 public interface PlanCourseService extends IService<PlanCourse> {
     List<Course> getCourses(String planId);
+
+    @Override
+    default boolean removeById(PlanCourse entity) {
+        return IService.super.removeById(entity);
+    }
 }

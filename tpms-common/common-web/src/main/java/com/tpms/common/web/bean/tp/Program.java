@@ -107,7 +107,10 @@ public class Program implements Serializable {
     private String isStop;
 
     @TableField(exist = false)
-    private String courseIds;
+    private List<String> courseIds;
+
+    @TableField(exist = false)
+    private String changeCourse;
 
     @TableField(exist = false)
     private List<Course> courses;

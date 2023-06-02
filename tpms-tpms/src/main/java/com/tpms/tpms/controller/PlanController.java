@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.deepoove.poi.XWPFTemplate;
 import com.deepoove.poi.data.*;
 import com.deepoove.poi.util.PoitlIOUtils;
+import com.tpms.common.redis.RedisUtil;
 import com.tpms.common.web.bean.PageResult;
 import com.tpms.common.web.bean.Result;
 import com.tpms.common.web.bean.ResultUtil;
@@ -47,6 +48,9 @@ public class PlanController extends BaseController {
     @Resource
     private PlanCourseService planCourseService;
 
+    @Resource
+    private RedisUtil redisUtil;
+
 
     /**
      * 添加培养计划
@@ -61,15 +65,15 @@ public class PlanController extends BaseController {
         if (planService.checkDuplicate(plan)) {
             plan.setDelFlag("0");
             if (planService.save(plan)) {
-                String courseIds = plan.getCourseIds();
+                List<String> courseIds = plan.getCourseIds();
                 //课程不为空，培养方案添加课程
                 String logMsg = "添加培养计划，培养计划ID：" + plan.getPlanId();
-                if (StringUtils.isNotBlank(courseIds)) {
+                if (courseIds != null && courseIds.size() > 0) {
                     logMsg += "，课程ID：" + courseIds;
                     String planId = plan.getPlanId();
 
                     List<PlanCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")) {
+                    for (String courseId : courseIds) {
                         PlanCourse tmp = PlanCourse.builder()
                                 .planId(planId).courseId(courseId)
                                 .theYear(plan.getTheYear())
@@ -92,33 +96,37 @@ public class PlanController extends BaseController {
      */
     @PutMapping(value = "/")
     public Result updatePlan(@RequestBody Plan plan) {
-        if (planService.checkDuplicate(plan, plan.getPlanId())) {
+        String planId = plan.getPlanId();
+        if (planService.checkDuplicate(plan, planId)) {
             if (planService.updateById(plan)) {
-                String courseIds = plan.getCourseIds();
+                String key = "planCache:" + planId;
+                redisUtil.del(key);
 
-                //courseIds如果为pass，跳过修改培养方案课程
-                if ("pass".equals(courseIds)) {
-                    return ResultUtil.success("修改成功");
-                }
-
-                String planId = plan.getPlanId();
-                LambdaQueryWrapper<PlanCourse> wrapper = Wrappers.lambdaQuery();
-                wrapper.eq(PlanCourse::getPlanId, planId);
-
-                //删除原有课程
-                planCourseService.remove(wrapper);
                 String logMsg = "修改培养计划，培养计划ID：" + planId;
+                if ("true".equals(plan.getChangeCourse())) {
+                    List<String> courseIds = plan.getCourseIds();
+                    LambdaQueryWrapper<PlanCourse> wrapper = Wrappers.lambdaQuery();
+                    wrapper.eq(PlanCourse::getPlanId, planId);
 
-                //courseIds不为空，进行添加课程
-                if (StringUtils.isNotBlank(courseIds)) {
-                    logMsg += "，课程ID：" + courseIds;
-                    List<PlanCourse> list = new ArrayList<>();
-                    for (String courseId : courseIds.split(",")) {
-                        PlanCourse tmp = PlanCourse.builder()
-                                .planId(planId).courseId(courseId).build();
-                        list.add(tmp);
+                    //删除原有课程
+                    planCourseService.remove(wrapper);
+
+                    key = "planCourseCache:" + planId;
+                    redisUtil.del(key);
+
+                    //courseIds不为空，进行添加课程
+                    if (courseIds != null && courseIds.size() > 0) {
+                        logMsg += "，课程ID：" + courseIds;
+                        List<PlanCourse> list = new ArrayList<>();
+                        for (String courseId : courseIds) {
+                            PlanCourse tmp = PlanCourse.builder()
+                                    .planId(planId).courseId(courseId)
+                                    .theYear(plan.getTheYear())
+                                    .majorId(plan.getMajorId()).build();
+                            list.add(tmp);
+                        }
+                        planCourseService.saveBatch(list);
                     }
-                    planCourseService.saveBatch(list);
                 }
                 logOperate("培养计划管理", "UPDATE", logMsg);
                 return ResultUtil.success("修改成功");
@@ -130,8 +138,8 @@ public class PlanController extends BaseController {
     }
 
 
-    @PostMapping("/page")
-    public Result page(@RequestBody PlanQuery planQuery) {
+    @GetMapping("/page")
+    public Result page(PlanQuery planQuery) {
         Page<Plan> page = new Page<>(planQuery.getPageNo(), planQuery.getPageSize());
 
         QueryWrapper<Plan> wrapper = new QueryWrapper<>();
@@ -160,8 +168,8 @@ public class PlanController extends BaseController {
         return ResultUtil.success(pageBean);
     }
 
-    @PostMapping("/approve/page")
-    public Result approvePage(@RequestBody PlanQuery planQuery) {
+    @GetMapping("/approve/page")
+    public Result approvePage(PlanQuery planQuery) {
         Page<Plan> page = new Page<>(planQuery.getPageNo(), planQuery.getPageSize());
 
         QueryWrapper<Plan> wrapper = new QueryWrapper<>();
@@ -180,7 +188,7 @@ public class PlanController extends BaseController {
         }
         if (StringUtils.isNotBlank(planQuery.getStatus())) {
             wrapper.eq("tp.status", planQuery.getStatus());
-        }else {
+        } else {
             wrapper.ge("tp.status", "1");
         }
         wrapper.eq("tp.del_flag", "0");
@@ -197,9 +205,20 @@ public class PlanController extends BaseController {
      */
     @GetMapping("/{id}")
     public Result getById(@PathVariable("id") String planId) {
-        Plan plan = planService.getByPlanId(planId);
-        List<Course> courses = planCourseService.getCourses(planId);
+        String key = "planCache:" + planId;
+        Plan plan = (Plan) redisUtil.get(key);
+        if (plan == null) {
+            plan = planService.getByPlanId(planId);
+            redisUtil.set(key,plan);
+        }
+        key = "planCourseCache:" + planId;
+        List<Course> courses = (List<Course>) redisUtil.get(key);
+        if(courses == null){
+            courses = planCourseService.getCourses(planId);
+            redisUtil.set(key,courses);
+        }
         plan.setCourses(courses);
+
         return ResultUtil.success(plan);
     }
 
@@ -209,11 +228,19 @@ public class PlanController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delById(@PathVariable("id") String planId) {
         if (planService.removeById(planId)) {
+            String key = "planCache:" + planId;
+            redisUtil.del(key);
+
             QueryWrapper<PlanCourse> wrapper = new QueryWrapper<>();
             wrapper.eq("plan_id", planId);
+
             planCourseService.remove(wrapper);
+            key = "planCourseCache:" + planId;
+            redisUtil.del(key);
+
             String logMsg = "删除培养计划，培养计划ID：" + planId;
             logOperate("培养计划管理", "DELETE", logMsg);
+
             return ResultUtil.success("删除成功");
         }
         return ResultUtil.error("删除失败");
@@ -221,7 +248,9 @@ public class PlanController extends BaseController {
 
     @PutMapping("/approve/")
     public Result updateStatus(@RequestBody Plan plan) {
-        if(planService.updateById(plan)){
+        if (planService.updateById(plan)) {
+            String key = "planCache:" + plan.getPlanId();
+            redisUtil.del(key);
             return ResultUtil.success("操作成功");
         }
         return ResultUtil.error("操作失败");
@@ -233,14 +262,22 @@ public class PlanController extends BaseController {
     @GetMapping("/download/{id}")
     public void download(@PathVariable("id") String planId, HttpServletResponse response) throws IOException {
 
-        Plan plan = planService.getByPlanId(planId);
+        String key = "planCache:" + planId;
+        Plan plan = (Plan) redisUtil.get(key);
+        if (plan == null) {
+            plan = planService.getByPlanId(planId);
+            redisUtil.set(key,plan);
+        }
+
         if (plan == null) {
             response.setContentType("application/json");
             response.setCharacterEncoding("utf-8");
-            Map<String, String> map = new HashMap<>();
-            map.put("status", "failure");
-            map.put("message", "培养计划不存在");
-            response.getWriter().println(JSONUtils.toJSONString(map));
+            response.setStatus(600);
+            return;
+        } else if (!"2".equals(plan.getStatus())) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("utf-8");
+            response.setStatus(601);
             return;
         }
 
@@ -259,7 +296,7 @@ public class PlanController extends BaseController {
             int[] width = {20, 40, 10, 10, 20};
             //表头和空行
             RowRenderData header = Rows.create("课程编号", "课程名称", "学分", "学时", "执行学期");
-            RowRenderData none = Rows.create("无", null, null, null, null);
+            RowRenderData none = Rows.create("无", null, null, null, null, null);
             //合并单元格
             MergeCellRule rule = MergeCellRule.builder()
                     .map(MergeCellRule.Grid.of(1, 0), MergeCellRule.Grid.of(1, 3))
@@ -275,12 +312,19 @@ public class PlanController extends BaseController {
             TableRenderData course3 = Tables.of(header).percentWidth("100%", width)
                     .center().create();
 
-            List<Course> courses = planCourseService.getCourses(planId);
+            key = "planCourseCache:" + planId;
+            List<Course> courses = (List<Course>) redisUtil.get(key);
+            if(courses == null){
+                courses = planCourseService.getCourses(planId);
+                redisUtil.set(key,courses);
+            }
+
+
             if (courses != null && courses.size() > 0) {
                 for (Course course : courses) {
                     String courseType = course.getCourseType();
                     RowRenderData row = Rows.create(course.getCourseCode(), course.getCourseName(),
-                            String.valueOf(course.getCredit()),String.valueOf(course.getXueshi()), null);
+                            String.valueOf(course.getCredit()), String.valueOf(course.getXueshi()), null);
                     if ("0".equals(courseType)) {
                         course0.addRow(row);
                     } else if ("1".equals(courseType)) {
@@ -293,19 +337,19 @@ public class PlanController extends BaseController {
                 }
             }
 
-            if (course0.getRows().size() < 1) {
+            if (course0.getRows().size() == 1) {
                 course0.addRow(none);
                 course0.setMergeRule(rule);
             }
-            if (course1.getRows().size() < 1) {
+            if (course1.getRows().size() == 1) {
                 course1.addRow(none);
                 course1.setMergeRule(rule);
             }
-            if (course2.getRows().size() < 1) {
+            if (course2.getRows().size() == 1) {
                 course2.addRow(none);
                 course2.setMergeRule(rule);
             }
-            if (course3.getRows().size() < 1) {
+            if (course3.getRows().size() == 1) {
                 course3.addRow(none);
                 course3.setMergeRule(rule);
             }

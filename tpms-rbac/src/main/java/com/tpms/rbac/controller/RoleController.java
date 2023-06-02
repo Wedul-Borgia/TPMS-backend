@@ -149,6 +149,18 @@ public class RoleController extends BaseController {
     }
 
     /**
+     * 根据用户ID获取权限
+     *
+     * @param userId
+     * @return
+     */
+    @GetMapping(value = "/power/userId/{id}")
+    public Result findPowersByUserId(@PathVariable(name = "id") String userId) {
+        List<Power> list = powerService.findUserPower(userId);
+        return ResultUtil.success(list);
+    }
+
+    /**
      * 修改角色
      */
     @PutMapping(value = "/")

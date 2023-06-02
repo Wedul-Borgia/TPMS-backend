@@ -115,7 +115,10 @@ public class Plan implements Serializable {
     private String xuewei;
 
     @TableField(exist = false)
-    private String courseIds;
+    private List<String> courseIds;
+
+    @TableField(exist = false)
+    private String changeCourse;
 
     @TableField(exist = false)
     private List<Course> courses;
